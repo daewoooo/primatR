@@ -1,9 +1,9 @@
-#' Load inversion calls
+#' Load structural variant calls
 #'
-#' @param file A file containing inversion calls.
+#' @param file A file containing structural variant calls.
 #' @param ID A metadata column to be appended.
 #' @param remove.uncertain Set to \code{TRUE} if calls with question mark should be removed.
-#' @return A \code{\link{GRanges-class}} object containing all inversion calls.
+#' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 
 importCalls <- function(file=NULL, ID=NULL, remove.uncertain=TRUE) {
