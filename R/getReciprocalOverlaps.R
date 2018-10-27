@@ -3,14 +3,15 @@
 #' @param query A \code{\link{GRanges-class}} object.
 #' @param subject A \code{\link{GRanges-class}} object.
 #' @param thresh A percentage threshold for a required overlap.
-#' @param report Set to 'both' if you want to return merged query and subject ranges or select only one of them. 
+#' @param report Set to 'both' if you want to return merged query and subject ranges or select only one of them.
+#' @param index An user defiend ID to disntiguish calculated overlaps.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 
-getReciprocalOverlaps <- function(query, subject, thresh=50, report='both') {
-  
+getReciprocalOverlaps <- function(query, subject, thresh=50, report='both', index='') {
+  ## Get overlaps between query and subject ranges
   hits <- findOverlaps(query, subject)
-  
+  ## Initialize exported variables (3new meta-columns)
   query$perc.overlap <- 0
   query$toGR <- query[,0]
   query$idx <- paste0(1:length(query), ".1")
@@ -40,12 +41,28 @@ getReciprocalOverlaps <- function(query, subject, thresh=50, report='both') {
     }
   }
   
+  ## Add index to newly added metacolumns (perc.overlap, toGR, idx)
+  if (is.character(index) & nchar(index) > 0) {
+    ## Add index to query ranges
+    col.names.query <- names(mcols(query))
+    to.modif <- (length(col.names.query)-2) : length(col.names.query)
+    col.names.query[to.modif] <- paste0(col.names.query[to.modif], "_", index)
+    names(mcols(query)) <- col.names.query
+    ## Add index to subject ranges
+    col.names.subject <- names(mcols(subject))
+    to.modif <- (length(col.names.subject)-2) : length(col.names.subject)
+    col.names.subject[to.modif] <- paste0(col.names.subject[to.modif], "_", index)
+    names(mcols(subject)) <- col.names.subject
+  }
+  
   if (report == 'query') {
     return(query)
   } else if (report == 'subject') {
     return(subject)
   } else {
-    return(c(query, subject))
+    ## Keep only shared meta-columns
+    keep.mcols <- names(mcols(query))[names(mcols(query)) == names(mcols(subject))]
+    return(c(query[,keep.mcols], subject[,keep.mcols]))
   } 
 }
 
