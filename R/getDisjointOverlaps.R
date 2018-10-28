@@ -4,6 +4,7 @@
 #' @param percTh A percentage threshold for a required overlap.
 #' @return A \code{\link{GRanges-class}} object with extra meta-columns (idx, perc.overlap & group).
 #' @author David Porubsky
+#' @export
 
 getDisjointOverlaps <- function(gr, percTh = 50) {
   
@@ -49,6 +50,13 @@ getDisjointOverlaps <- function(gr, percTh = 50) {
   }
   return(gr)
 }
+
+
+#' Function to calculate reciprocal overlap for a set of genomic ranges.
+#'
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
 
 recalcPercOverlap <- function(gr) {
   if (length(gr) > 1) {

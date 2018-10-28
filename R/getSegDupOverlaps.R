@@ -4,6 +4,7 @@
 #' @param subject.gr A \code{\link{GRanges-class}} object. 
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
+#' @export
 
 getSegDupOverlaps <- function(query.gr, subject.gr) {
   query.gr$SDTrackPercOverlap <- 0

@@ -7,6 +7,7 @@
 #' @param index An user defiend ID to disntiguish calculated overlaps.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
+#' @export
 
 getReciprocalOverlaps <- function(query, subject, thresh=50, report='both', index='') {
   ## Get overlaps between query and subject ranges
