@@ -17,7 +17,7 @@ getDisjointOverlaps <- function(gr, percTh = 50) {
   gr$idx <- 1:length(gr) #unique id for each inputed range
   gr$perc.overlap <- 0
   gr$group <- 0 #group for overlapping ranges
-  
+  gr$sub.group <- 0 
   ## Repeat this for ranges with group assigned a zero value
   while (any(gr$group == 0)) {
     ## Select ranges to assign a non-zero group
@@ -44,7 +44,10 @@ getDisjointOverlaps <- function(gr, percTh = 50) {
     gr.filt.grl <- endoapply(gr.filt.grl, recalcPercOverlap)
     new.gr <- unlist(gr.filt.grl, use.names = FALSE)
     ## Set ranges with % overlap less then percTh to zero
-    new.gr$perc.overlap[new.gr$perc.overlap < percTh] <- 0
+    #new.gr$perc.overlap[new.gr$perc.overlap < percTh] <- 0
+    ## Set subgroup based on required percTh
+    new.gr$sub.group <- paste0(new.gr$group,".", 1)
+    new.gr$sub.group[which(new.gr$perc.overlap < percTh)] <- paste0(new.gr$group[which(new.gr$perc.overlap < percTh)],".", 2)
     ## Assign processed ranges to initial ranges
     gr[match(new.gr$idx, gr$idx)] <- new.gr[new.gr$idx %in% gr$idx]
   }

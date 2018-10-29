@@ -5,6 +5,7 @@
 #' @param remove.uncertain Set to \code{TRUE} if calls with question mark should be removed.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
+#' @export
 
 importCalls <- function(file=NULL, ID=NULL, remove.uncertain=TRUE) {
   calls.tab <- read.table(file = file, stringsAsFactors = FALSE, sep=" ", header = TRUE)
