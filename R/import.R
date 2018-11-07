@@ -26,3 +26,33 @@ importCalls <- function(file=NULL, ID=NULL, remove.uncertain=TRUE) {
   }
   return(calls.tab.gr)
 }
+
+
+#' Load reads from a composite file
+#' 
+#' This function loads Strand-seq reads stored as a RData object either all or from a selected genomic regions.
+#'
+#' @param compositeFile A file containing single-cell Strand-seq reads synchronized by directionality.
+#' @param regions A \code{\link{GRanges-class}} object with genomic regions to select reads from.
+#' @param ID A unique identifier to add as a metacolumn in returned \code{\link{GRanges-class}} object.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
+#' @export
+
+importReadsFromComposite <- function(compositeFile, regions=NULL, ID="") {
+  data <- get(load(compositeFile))
+  
+  if (is.character(ID) & nchar(ID)>0) {
+    data$ID <- ID
+  } else {
+    data$ID <- ""
+  }
+  
+  if (!is.null(regions) & length(regions) > 0) {
+    data <- IRanges::subsetByOverlaps(data, regions)
+    hits <- GenomicRanges::findOverlaps(data, regions)
+    data$region.ID <- rep(as.character(regions), table(subjectHits(hits)))
+  }
+  
+  return(data)
+}

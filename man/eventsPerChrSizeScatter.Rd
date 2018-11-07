@@ -4,10 +4,12 @@
 \alias{eventsPerChrSizeScatter}
 \title{Plots scatter of event counts to chromosome size}
 \usage{
-eventsPerChrSizeScatter(gr)
+eventsPerChrSizeScatter(gr, bsgenome)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
+
+\item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
 }
 \value{
 A \code{ggplot} object.

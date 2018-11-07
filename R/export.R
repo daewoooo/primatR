@@ -98,3 +98,45 @@ fragments2UCSC <- function(index, outputDirectory, fragments=NULL) {
     #stopTimedMessage(ptm)
   }
 }
+
+
+#' Generates a bedfile from an input GRanges file.
+#'
+#' Write a bedfile from Genomic Ranges object for upload on to UCSC Genome browser.
+#'
+#' @param gr A \code{\link{GRanges-class}} object with genomic ranges to be exported into UCSC format.
+#' @param outputDirectory A path to directory where to save UCSC bed file.
+#' @param colorRGB An RGB color to be used for submitted ranges.
+#' @param id.field A name of metacolumn field to use as a name for each range.
+#' @return \code{NULL}
+#' @author David Porubsky
+#' @importFrom utils write.table
+#' @export
+
+ranges2UCSC <- function(gr, outputDirectory=".", index="bedFile", colorRGB='0,0,0', id.field='') {
+  
+  ## Insert 'chr' before chromosome number if missing
+  gr <- insertchr(gr)
+  
+  ## Prepare file for bed export
+  savefile<- file.path(outputDirectory, paste0(index, '.bed.gz'))
+  savefile.gz <- gzfile(savefile, 'w')
+  
+  ## Write a header to the file
+  header <- paste('track name=', index, ' description=Bed_regions_',index,' visibility=dense color=',colorRGB, sep="")
+  utils::write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
+  
+  ## Write the rest of the file  
+  if (length(gr)>0) {
+    if (nchar(id.field)>0 & id.field %in% colnames(mcols(gr))) {
+      #gr$score <- 0
+      bedF <- as.data.frame(gr)[c('chromosome','start','end', id.field)]
+    } else {
+      bedF <- as.data.frame(gr)[c('chromosome','start','end')]
+    }  
+  } else {
+    bedF <- data.frame(chromosome='chr1', start=1, end=1)
+  }
+  utils::write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
+  close(savefile.gz)
+}

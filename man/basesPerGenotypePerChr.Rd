@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{basesPerGenotypePerChr}
 \alias{basesPerGenotypePerChr}
-\title{Plot sum of ranged data (total bp) per genotype and per chromosome.}
+\title{Plot distribution of total sizes of all inversions per genotype.}
 \usage{
 basesPerGenotypePerChr(gr, normChrSize = FALSE)
 }
@@ -13,7 +13,7 @@ basesPerGenotypePerChr(gr, normChrSize = FALSE)
 A \code{ggplot} object.
 }
 \description{
-Plot sum of ranged data (total bp) per genotype and per chromosome.
+This function plots sum of widths of all ranged data (total bp) per genotype and per chromosome.
 }
 \author{
 David Porubsky

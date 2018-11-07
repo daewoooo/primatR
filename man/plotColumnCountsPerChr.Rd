@@ -18,7 +18,7 @@ plotColumnCountsPerChr(gr, colName = "gen", facetID = NULL,
 A \code{ggplot} object.
 }
 \description{
-Plot categorized metacolumns of ranged data per chromosome.
+This function counts categorcal variables stored as metacolumn in \code{\link{GRanges-class}} object per each chromosome.
 }
 \author{
 David Porubsky

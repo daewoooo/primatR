@@ -36,11 +36,11 @@ getDisjointOverlaps <- function(gr, percTh = 50) {
     gr2filt$group <- subjectHits(hits) + max(gr$group)
     ## Filter ranges based on user defined percTh
     #gr.filt <- gr2filt[perc.overlap >= percTh]
-    gr2filt.grl <- split(gr2filt, gr2filt$idx)
+    gr2filt.grl <- GenomicRanges::split(gr2filt, gr2filt$idx)
     gr2filt.grl <- endoapply(gr2filt.grl, returnMaxOverlap)
     gr.filt <- unlist(gr2filt.grl, use.names = FALSE)
     ## Split ranges passing percTh and recalibrate % of overlap
-    gr.filt.grl <- split(gr.filt, gr.filt$group)
+    gr.filt.grl <- GenomicRanges::split(gr.filt, gr.filt$group)
     gr.filt.grl <- endoapply(gr.filt.grl, recalcPercOverlap)
     new.gr <- unlist(gr.filt.grl, use.names = FALSE)
     ## Set ranges with % overlap less then percTh to zero

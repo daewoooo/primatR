@@ -9,6 +9,8 @@ Description: More about what it does (maybe more than one line)
 Depends:
   R (>= 3.5),
   GenomicRanges,
+  ggplot2,
+  RColorBrewer,
   cowplot
 Imports:
   methods,
@@ -18,7 +20,8 @@ Imports:
   S4Vectors,
   GenomeInfoDb (>= 1.12.3),
   IRanges,
-  ggplot2,
+  Rsamtools,
+  GenomicAlignments,
   BiocGenerics,
   gtools
 Suggests:

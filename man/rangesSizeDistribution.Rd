@@ -4,18 +4,20 @@
 \alias{rangesSizeDistribution}
 \title{Plot sorted size distribution of ranged data.}
 \usage{
-rangesSizeDistribution(gr, plotUniqueBases = FALSE)
+rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
 
 \item{plotUniqueBases}{Set to \code{TRUE} if you want to plot size of unique bases per range.}
+
+\item{violin}{Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot sorted size distribution of ranged data.
+This function take \code{\link{GRanges-class}} object and plot width distribution of all ranges per variable stored in metacolumn field 'ID'
 }
 \author{
 David Porubsky

@@ -5,10 +5,13 @@
 \title{Plot genome-wide distribution of ranged data.
 Ranges are color by the 'ID' column.}
 \usage{
-genomewideRangesIdeo(gr, userTrack = NULL)
+genomewideRangesIdeo(gr, userTrack = NULL, userTrackGeom = "rect",
+  bsgenome = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
+
+\item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
 }
 \value{
 A \code{ggplot} object.

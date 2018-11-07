@@ -1,10 +1,13 @@
 #' Plot categorized metacolumns of ranged data.
+#' 
+#' This function counts categorcal variables stored as metacolumn in \code{\link{GRanges-class}} object.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param colName A metacolumn name to be sumarized and plotted.
 #' @param facedID A metacolumn name to be used to split data in sub-plots.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
 plotColumnCounts <- function(gr, colName='gen', facetID=NULL) {
   plt.df <- as.data.frame(gr)
@@ -29,12 +32,15 @@ plotColumnCounts <- function(gr, colName='gen', facetID=NULL) {
 
 
 #' Plot categorized metacolumns of ranged data per chromosome.
+#' 
+#' This function counts categorcal variables stored as metacolumn in \code{\link{GRanges-class}} object per each chromosome.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param colName A metacolumn name to be sumarized and plotted.
 #' @param facedID A metacolumn name to be used to split data in sub-plots.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
 plotColumnCountsPerChr <- function(gr, colName='gen', facetID=NULL, normChrSize=FALSE) {
   plt.df <- as.data.frame(gr)
@@ -67,11 +73,14 @@ plotColumnCountsPerChr <- function(gr, colName='gen', facetID=NULL, normChrSize=
 }
 
 
-#' Plot sum of ranged data (total bp) per genotype and per chromosome.
+#' Plot distribution of total sizes of all inversions per genotype. 
+#'
+#' This function plots sum of widths of all ranged data (total bp) per genotype and per chromosome.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
 basesPerGenotypePerChr <- function(gr, normChrSize=FALSE) {
   plt.df <- as.data.frame(gr)
@@ -92,23 +101,35 @@ basesPerGenotypePerChr <- function(gr, normChrSize=FALSE) {
 } 
 
 #' Plot sorted size distribution of ranged data.
+#' 
+#' This function take \code{\link{GRanges-class}} object and plot width distribution of all ranges per variable stored in metacolumn field 'ID'
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param plotUniqueBases Set to \code{TRUE} if you want to plot size of unique bases per range.
+#' @param violin Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
-rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE) {
+rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
   inv.sizes.ord <- order(width(gr), decreasing = FALSE)
   if (plotUniqueBases) {
     size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], uniqueBases=gr$TotalUniqueBases[inv.sizes.ord], ID=gr$ID[inv.sizes.ord])
   } else {
     size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], ID=gr$ID[inv.sizes.ord])
   }  
-  plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID))
-  if (plotUniqueBases) {
-    plt <- plt + geom_point(aes(x=x, y=uniqueBases), color='gray')
+  
+  if (violin) {
+    plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE)
+    plt <- plt + geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=1)
+    plt <- plt + scale_fill_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
+  } else {
+    plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID))
+    if (plotUniqueBases) {
+      plt <- plt + geom_point(aes(x=x, y=uniqueBases), color='gray')
+    }
   }
+  
   plt <- plt + scale_y_continuous(limits = c(1, max(size.dist.df$size)), breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10')
   plt <- plt + geom_hline(yintercept = c(10000, 1000000), linetype="dashed") + facet_grid(ID ~.)
   plt <- plt + scale_color_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
@@ -117,31 +138,28 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE) {
 }  
 
 
-rangesSizeDistribution_violin <- function(gr, dotsize=1) {
-  inv.sizes.ord <- order(width(gr), decreasing = FALSE)
-
-  size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], ID=gr$ID[inv.sizes.ord])
-
-  plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE)
-  plt <- plt + geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=dotsize)
-  plt <- plt + scale_y_continuous(breaks=c(1000,10000,100000,1000000,10000000), labels = comma, trans = 'log10')
-  plt <- plt + geom_hline(yintercept = c(10000, 100000, 1000000, 10000000), linetype="dashed")
-  plt <- plt + scale_fill_manual(values = brewer.pal(n = 9, name = "Set1"), name="")
-  plt <- plt + xlab("Size sorted inversions") + ylab("Inversion size (log10)")
-  plt <- plt + theme_bw()
-  return(plt)
-}  
-
-
 #' Plots scatter of event counts to chromosome size
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
+#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' 
-eventsPerChrSizeScatter <- function(gr) {
+eventsPerChrSizeScatter <- function(gr, bsgenome) {
+  if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
+    message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
+  }
+  
+  ## Load BSgenome
+  if (class(bsgenome) != 'BSgenome') {
+    if (is.character(bsgenome)) {
+      suppressPackageStartupMessages(library(bsgenome, character.only=T))
+      bsgenome <- as.object(bsgenome) # replacing string by object
+    }
+  }
+  
   plt.df <- as.data.frame(gr)
-  seq.len <- seqlengths(BSgenome.Hsapiens.UCSC.hg38)[seqlevels(gr)]
+  seq.len <- seqlengths(bsgenome)[seqlevels(gr)]
   data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
 
   data.tab %>% ggplot() + geom_point(aes(x=ChrLen, y=counts)) + 
@@ -155,11 +173,25 @@ eventsPerChrSizeScatter <- function(gr) {
 #' Ranges are color by the 'ID' column.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
+#' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
-genomewideRangesIdeo <- function(gr, userTrack=NULL) {
-  seq.len <- seqlengths(BSgenome.Hsapiens.UCSC.hg38)[paste0('chr', c(1:22, 'X'))]
+genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', bsgenome=NULL) {
+  if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
+    message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
+  }
+  
+  ## Load BSgenome
+  if (class(bsgenome) != 'BSgenome') {
+    if (is.character(bsgenome)) {
+      suppressPackageStartupMessages(library(bsgenome, character.only=T))
+      bsgenome <- as.object(bsgenome) # replacing string by object
+    }
+  }
+  
+  seq.len <- seqlengths(bsgenome)[paste0('chr', c(1:22, 'X'))]
   ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
   ideo.df$seqnames <- factor(ideo.df$seqnames, levels=paste0('chr', c(1:22, 'X')))
   
@@ -170,13 +202,20 @@ genomewideRangesIdeo <- function(gr, userTrack=NULL) {
   if (!is.null(userTrack)) {
     strand(userTrack) <- "*"
     userTrack <- reduce(userTrack)
-    userTrack <- keepSeqlevels(userTrack, paste0('chr', c(1:22, 'X')), pruning.mode = 'coarse')
+    ## Remove seqlevels not present in the data or different than chr1:22 and X
+    chroms2keep <- seqlevels(userTrack)[seqlevels(userTrack) %in% paste0('chr', c(1:22, 'X'))]
+    userTrack <- keepSeqlevels(userTrack, chroms2keep, pruning.mode = 'coarse')
     userTrack.df <- as(userTrack, 'data.frame')
-    plt <- plt + geom_linerange(data=userTrack.df, aes(x=-1, ymin=as.numeric(start), ymax=as.numeric(end)), size=2, color="darkgoldenrod1")
+    if (userTrackGeom == 'rect') {
+      plt <- plt + geom_linerange(data=userTrack.df, aes(x=-1, ymin=as.numeric(start), ymax=as.numeric(end)), size=2, color="darkgoldenrod1")
+    } else if (userTrackGeom == 'point') {
+      userTrack.df$midpoint <- userTrack.df$start + ((userTrack.df$end - userTrack.df$start)/2)
+      plt <- plt + geom_point(data=userTrack.df, aes(x=-1, y=midpoint), size=1, color="darkgoldenrod1")
+    }
   }
   plt <- plt + coord_flip() + facet_grid(seqnames ~ ., switch = 'y')
   plt <- plt + geom_linerange(data=plt.df , aes(x=level, ymin=start, ymax=end+250000, color=ID), size=1)
-  plt <- plt + scale_color_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
+  plt <- plt + scale_color_manual(values =  RColorBrewer::brewer.pal(n = 4, name = "Set1"), name="")
   plt <- plt + scale_y_continuous(expand = c(0,0))
   plt <- plt + theme_void()
   plt <- plt + theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank())
@@ -250,6 +289,7 @@ plotVennPartitionsGen <- function(venn=NULL, overlaps=NULL) {
 #' @param facedID A metacolumn name to be used to split data in sub-plots.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
+#' @export
 
 plotOverlapWithRanges <- function(query.gr=NULL, subject.gr=NULL, facetID=NULL) {
   counts <- countOverlaps(query.gr, subject.gr)
@@ -334,11 +374,3 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
   return(ggplt)
 }
 
-
-
-#=======================
-### Helper functions ###
-#=======================
-as.object <- function(x) {
-  return(eval(parse(text=x)))
-}
