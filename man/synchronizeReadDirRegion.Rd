@@ -4,13 +4,13 @@
 \alias{synchronizeReadDirRegion}
 \title{Synchronize Strand-seq read directionality}
 \usage{
-synchronizeReadDirRegion(bamfolder = "", region = NULL,
+synchronizeReadDirRegion(bamFiles = "", region = NULL,
   pairedEndReads = TRUE, min.mapq = 10, filterAltAlign = TRUE)
 }
 \arguments{
-\item{bamfolder}{A list of files that contains \code{\link{BreakPoint}} objects.}
+\item{bamFiles}{A list of files that contains \code{\link{BreakPoint}} objects.}
 
-\item{region}{A segment size to be collapsed with neighbouring segments.}
+\item{region}{A \code{\link{GRanges-class}} object to select reads from.}
 
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
 

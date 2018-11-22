@@ -2,23 +2,24 @@
 #'
 #' This function aims to synchronize read directionality of a specified genomic region.
 #' 
-#' @param bamfolder A list of files that contains \code{\link{BreakPoint}} objects.
-#' @param region A segment size to be collapsed with neighbouring segments.
+#' @param bamFiles A list of files that contains \code{\link{BreakPoint}} objects.
+#' @param region A \code{\link{GRanges-class}} object to select reads from.
 #' @inheritParams bam2GRanges
 #' @return A \code{\link{GRanges-class}} object that reads synchronized by directionality.
 #' @importFrom dplyr recode
 #' @author David Porubsky
 #' @export
 
-synchronizeReadDirRegion <- function(bamfolder = "", region = NULL, pairedEndReads = TRUE, min.mapq = 10, filterAltAlign = TRUE) {
-  bams <- list.files(bamfolder, pattern = "\\.bam$", full.names = TRUE)
+synchronizeReadDirRegion <- function(bamFiles="", region = NULL, pairedEndReads = TRUE, min.mapq = 10, filterAltAlign = TRUE) {
+  #bams <- list.files(bamfolder, pattern = "\\.bam$", full.names = TRUE)
   
   if (is.null(region)) {
     "Please submit genomic region. This function has not been tested in genome-wide settings!!!"
   }
   
-  for (i in seq_along(bams)) {
-    bam <- bams[i]
+  strand.sync <- list()
+  for (i in seq_along(bamFiles)) {
+    bam <- bamFiles[i]
     filename <- basename(bam)
     message("Working on BAM: ", filename)
     
