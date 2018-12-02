@@ -128,7 +128,7 @@ makeBins <- function(bsgenome, chromosomes, binsize=100000, stepsize=binsize/2) 
 collapseOverlaps <- function(gr) {
   reduced.gr <- GenomicRanges::reduce(gr)
   if (ncol(mcols(gr))>0) {
-    mcols(reduced.gr) <- mcols(gr)[length(reduced.gr),]
+    mcols(reduced.gr) <- unique(mcols(gr)) #[length(reduced.gr),]
   }
   return(reduced.gr)
 }
