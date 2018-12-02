@@ -12,7 +12,7 @@ insertchr <- function(gr) {
   return(gr)
 }
 
-
+## Helper function
 as.object <- function(x) {
   return(eval(parse(text=x)))
 }
@@ -23,6 +23,7 @@ as.object <- function(x) {
 #' @param times A number of how many times to extend each range by its own width.
 #' @param bsgenome A reference genome to get lengths of standard chromosomes (1-22 adn X).
 #' @return A \code{\link{GRanges-class}} object with resized original set of ranges. 
+#' @author David Porubsky
 #' @export
 resizeRanges <- function(gr, times=2, bsgenome) {
   ## Load BSgenome
@@ -54,6 +55,7 @@ resizeRanges <- function(gr, times=2, bsgenome) {
 #' @param ID A unique identifier to add as a metacolumn in returned \code{\link{GRangesList}} object.
 #' @param coverage A logical value (TRUE|FALSE) if to report collapsed coverage or single reads.
 #' @return A \code{\link{GRanges-class}} object with resized original set of ranges. 
+#' @author David Porubsky
 #' @export
 coveragePerRegion <- function(grl, ID="", coverage=TRUE) {
   region.covs <- GRangesList()
@@ -87,9 +89,44 @@ coveragePerRegion <- function(grl, ID="", coverage=TRUE) {
 }
 
 
-# Reduce overlapping ranges
+#' Split genome into bins
+#' 
+#' This function splid genome into a equaly-sized user defined genomic intervals.
+#'
+#' @param bsgenome A reference genome to get lengths of standard chromosomes (1-22 adn X).
+#' @param chromosomes A user defined set of chromosomes for binning (eg. 'chr1')
+#' @param binsize A size of the genomic bin to split genome into.
+#' @param stepsize A size of the genomic interval to move each bin. For non-overlapping bins use the same size as binsize.
+#' @return A \code{\link{GRanges-class}} object with resized original set of ranges. 
+#' @author David Porubsky
+#' @export
+makeBins <- function(bsgenome, chromosomes, binsize=100000, stepsize=binsize/2) {
+  bins <- GRangesList()
+  chr.lengths <- seqlengths(bsgenome)[chromosomes]
+  seqlevels(bins) <- chromosomes
+  for (i in seq_along(chr.lengths)) {
+    chr.len <- chr.lengths[i]
+    
+    bin.starts <- seq(from = 1, to = chr.len-binsize, by = stepsize)
+    bin.ends <- seq(from = binsize, to = chr.len, by = stepsize)
+    
+    chr.bins <- GRanges(seqnames=names(chr.len), ranges=IRanges(start=bin.starts, end=bin.ends))
+    bins[[i]] <- chr.bins
+  }
+  bins <- unlist(bins, use.names = FALSE)
+  seqlengths(bins) <- chr.lengths
+  return(bins)
+}
+
+
+#' Reduce set of overlapping genomic ranges
+#'
+#' @param gr A \code{\link{GRanges-class}} object of set of genomic intervals.
+#' @return A \code{\link{GRanges-class}} object with resized original set of ranges.
+#' @author David Porubsky
+#' @export
 collapseOverlaps <- function(gr) {
-  reduced.gr <- reduce(gr)
+  reduced.gr <- GenomicRanges::reduce(gr)
   if (ncol(mcols(gr))>0) {
     mcols(reduced.gr) <- mcols(gr)[length(reduced.gr),]
   }

@@ -121,7 +121,7 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
   
   if (violin) {
     plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE)
-    plt <- plt + geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=1)
+    plt <- plt + geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1)
     plt <- plt + scale_fill_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
   } else {
     plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID))
@@ -130,8 +130,8 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
     }
   }
   
-  plt <- plt + scale_y_continuous(limits = c(1, max(size.dist.df$size)), breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10')
-  plt <- plt + geom_hline(yintercept = c(10000, 1000000), linetype="dashed") + facet_grid(ID ~.)
+  plt <- plt + scale_y_continuous(breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10')
+  plt <- plt + geom_hline(yintercept = c(10000, 1000000), linetype="dashed")
   plt <- plt + scale_color_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
   plt <- plt + xlab("Size sorted inversions") + ylab("Inversion size (log10)")
   return(plt)
@@ -144,7 +144,8 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
-#' 
+#' @export
+
 eventsPerChrSizeScatter <- function(gr, bsgenome) {
   if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
     message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")

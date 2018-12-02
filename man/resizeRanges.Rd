@@ -19,3 +19,6 @@ A \code{\link{GRanges-class}} object with resized original set of ranges.
 \description{
 Resize genomic ranges to user defined multiple of their original size
 }
+\author{
+David Porubsky
+}

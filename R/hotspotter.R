@@ -10,6 +10,7 @@
 #' @return A \code{\link{GRanges-class}} object containing coordinates of hotspots with p-values.
 #' @importFrom stats density runif ecdf
 #' @importFrom S4Vectors endoapply
+#' @importFrom GenomicRanges countOverlaps
 #' @author Aaron Taudt, David Porubsky
 #' @export
 

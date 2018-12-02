@@ -19,3 +19,6 @@ A \code{\link{GRanges-class}} object with resized original set of ranges.
 \description{
 This function calculates coverage per set of sequencing fragments or reports disjoint position per fragment.
 }
+\author{
+David Porubsky
+}
