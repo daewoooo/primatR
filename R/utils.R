@@ -132,3 +132,15 @@ collapseOverlaps <- function(gr) {
   }
   return(reduced.gr)
 }
+
+
+#' Count number of unique read IDs in a set of reads.
+#'
+#' @param readIDs Set of read IDs with appened extra info using '__' as a delimiter.
+#' @author David Porubsky
+#' @export
+countUniqueReadIDs <- function(readIDs) {
+  read.id <- sapply(readIDs, function(x) strsplit(x, "__")[[1]][1])
+  unique.ids <- unique(read.id)
+  return(length(unique.ids))
+} 
