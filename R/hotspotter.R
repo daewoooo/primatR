@@ -10,7 +10,7 @@
 #' @return A \code{\link{GRanges-class}} object containing coordinates of hotspots with p-values.
 #' @importFrom stats density runif ecdf
 #' @importFrom S4Vectors endoapply
-#' @importFrom GenomicRanges countOverlaps
+#' @importFrom IRanges countOverlaps
 #' @author Aaron Taudt, David Porubsky
 #' @export
 
@@ -59,7 +59,7 @@ hotspotter <- function(gr, bw, pval=1e-8) {
                 pvalues.split <- split(pvalues[mask],pvalues$group[mask])
                 pranges <- unlist(endoapply(pvalues.split, function(x) { y <- x[1]; end(y) <- end(x)[length(x)]; y$pvalue <- min(x$pvalue); return(y) }))
                 pranges$group <- NULL
-                pranges$num.events <- GenomicRanges::countOverlaps(pranges, grc)
+                pranges$num.events <- IRanges::countOverlaps(pranges, grc)
                 pranges.list[[chrom]] <- pranges
             }
         }

@@ -238,7 +238,7 @@ plotVennPartitions <- function(venn=NULL, overlaps=NULL) {
   for (i in 1:nrow(venn)) {
     partition <- venn[i,]
     partition.idx <- unlist(partition$..values..)
-    partition.ranges <- overlaps[overlaps$idx %in% partition.idx]
+    partition.ranges <- overlaps[overlaps$sub.group %in% partition.idx]
     partition.ranges$partitionID <- partition$..set..
     partitions[[i]] <- as.data.frame(partition.ranges)
   }
