@@ -5,7 +5,7 @@
 \title{Get basic BAM file statistics}
 \usage{
 bam2stat(bamfile, bamindex = paste0(bamfile, ".bai"),
-  chromosomes = NULL, chunkSize = NULL, mapq = 10,
+  chromosomes = NULL, chunkSize = NULL, min.mapq = 10,
   filt.flag = 3328, filt.alt = FALSE)
 }
 \arguments{
@@ -17,9 +17,9 @@ bam2stat(bamfile, bamindex = paste0(bamfile, ".bai"),
 
 \item{chunkSize}{Set for big BAMs to process them in smaller chunks.}
 
-\item{mapq}{Minimum mapping quality when importing from BAM files.}
+\item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
-\item{filt.flag}{Filter out reads with given flag.}
+\item{filt.flag}{Filter out reads with a given flag.}
 
 \item{filt.alt}{Set to \code{TRUE} if you want to filter out alternative alignments defined in 'XA' tag.}
 }

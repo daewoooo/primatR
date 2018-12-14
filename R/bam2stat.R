@@ -7,8 +7,8 @@
 #' @param bamindex Bam-index file with or without the .bai ending. If this file does not exist it will be created and a warning is issued.
 #' @param chromosomes If only a subset of the chromosomes should be binned, specify them here.
 #' @param chunkSize Set for big BAMs to process them in smaller chunks.
-#' @param mapq Minimum mapping quality when importing from BAM files.
-#' @param filt.flag Filter out reads with given flag.
+#' @param min.mapq Minimum mapping quality when importing from BAM files.
+#' @param filt.flag Filter out reads with a given flag.
 #' @param filt.alt Set to \code{TRUE} if you want to filter out alternative alignments defined in 'XA' tag.
 #' @return \code{data.frame}
 #' @importFrom Rsamtools ScanBamParam scanBamFlag
@@ -16,7 +16,7 @@
 #' @author David Porubsky
 #' @export 
 
-bam2stat <- function(bamfile, bamindex=paste0(bamfile, '.bai'), chromosomes=NULL, chunkSize=NULL, mapq=10, filt.flag=3328, filt.alt=FALSE) {
+bam2stat <- function(bamfile, bamindex=paste0(bamfile, '.bai'), chromosomes=NULL, chunkSize=NULL, min.mapq=10, filt.flag=3328, filt.alt=FALSE) {
   filename <- basename(bamfile)
   message("Reading BAM: ", filename)
   ## Check if bamindex exists
@@ -68,8 +68,8 @@ bam2stat <- function(bamfile, bamindex=paste0(bamfile, '.bai'), chromosomes=NULL
       
       data <- as(data.raw, "GRanges")
       ## Filter by mapping quality
-      if (mapq > 0) {
-        data <- data[data$mapq >= mapq]
+      if (min.mapq > 0) {
+        data <- data[data$mapq >= min.mapq]
       }
       ## Filter by flag
       if (filt.flag > 0) {
@@ -101,8 +101,8 @@ bam2stat <- function(bamfile, bamindex=paste0(bamfile, '.bai'), chromosomes=NULL
     data <- as(data.raw, "GRanges")
     
     ## Filter by mapping quality
-    if (mapq > 0) {
-      data <- data[data$mapq >= mapq]
+    if (min.mapq > 0) {
+      data <- data[data$mapq >= min.mapq]
     }
     ## Filter by flag
     if (filt.flag > 0) {
