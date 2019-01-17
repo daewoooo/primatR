@@ -375,3 +375,72 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
   return(ggplt)
 }
 
+
+#' Plot 'dotplot' of two sequences.
+#'
+#' This function specifically plots matched region of two sequences based on nucmer results.
+#' 
+#' @param nucmer.coords A coordinates from nucmer output. [RUN: nucmer --coords ...] 
+#' @param genome.coords Set to \code{TRUE} if you want to work in genomic coordinates.
+#' @param highlight.region A set of postions to be highlighted on the x-axis.
+#' @return A \code{\link[ggplot2:ggplot]{ggplot}} object.
+#' @author David Porubsky
+#' @export
+plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highlight.region = NULL, title = NULL) {
+  
+  ## Helper function
+  remapCoord <- function(x = NULL, new.range = NULL) {
+    offset <- (min(new.range) + x[1]) - 1
+    dist <- cumsum(diff(x))
+    new.x <- c(offset, (offset + dist))
+    return(new.x)
+  } 
+  
+  ## Read in coordinates from nucmer output
+  coords <- read.table(nucmer.coords, skip=5, stringsAsFactors = FALSE)
+  coords.df <- data.frame(s1.start=coords$V1,
+                          s1.end=coords$V2,
+                          s2.start=coords$V4,
+                          s2.end=coords$V5,
+                          s1.id=coords$V12,
+                          s2.id=coords$V13, 
+                          stringsAsFactors = FALSE)
+  
+  ## Translate sequence coordinates to genome-wide coordinates
+  if (genome.coord) {
+    s1.region <- unique(coords.df$s1.id)
+    s2.region <- unique(coords.df$s2.id)
+    s1.region <- strsplit(s1.region, ":")[[1]][2]
+    s2.region <- strsplit(s2.region, ":")[[1]][2]
+    s1.range <- as.numeric( strsplit(s1.region, "-")[[1]] )
+    s2.range <- as.numeric( strsplit(s2.region, "-")[[1]] )
+    coords.df$s1.start <- remapCoord(x = coords.df$s1.start, new.range = s1.range)
+    coords.df$s1.end <- remapCoord(x = coords.df$s1.end, new.range = s1.range)
+    coords.df$s2.start <- remapCoord(x = coords.df$s2.start, new.range = s2.range)
+    coords.df$s2.end <- remapCoord(x = coords.df$s2.end, new.range = s2.range)
+  }
+  
+  ## Color segments by directionality
+  coords.df$dir <- 'rev'
+  forw.mask <- (coords.df$s1.start < coords.df$s1.end) & (coords.df$s2.start < coords.df$s2.end)
+  coords.df$dir[forw.mask] <- 'forw'
+  
+  ## Plot segments
+  plt <- ggplot2::ggplot(coords.df, aes(x=s1.start,xend=s1.end,y=s2.start,yend=s2.end, color=dir)) + 
+    geom_segment() +
+    xlab(unique(coords.df$s1.id)) +
+    ylab(unique(coords.df$s2.id)) +
+    theme_bw() + 
+    theme(aspect.ratio=1) + #force x and y axis to have the same proportion
+    scale_color_manual(values = c('chartreuse4', 'darkgoldenrod2'))
+  ## Highlight user defined postion on x axis
+  if (!is.null(highlight.region)) {
+    plt <- plt + geom_vline(xintercept = highlight.region, color='black', linetype = 2)
+  }
+  ## Highlight user defined postion on x axis
+  if (!is.null(title)) {
+    plt <- plt + ggtitle(title)
+  }
+  
+  return(plt)
+}
