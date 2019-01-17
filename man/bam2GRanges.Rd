@@ -8,6 +8,8 @@ bam2GRanges(bamfile, bamindex = bamfile, region = NULL,
   pairedEndReads = FALSE, min.mapq = 10, filterAltAlign = TRUE)
 }
 \arguments{
+\item{bamfile}{Bamfile with aligned reads.}
+
 \item{bamindex}{Bam-index file with or without the .bai ending. If this file does not exist it will be created and a warning is issued.}
 
 \item{region}{If only a subset of the genomic regions should be loaded.}
@@ -17,8 +19,6 @@ bam2GRanges(bamfile, bamindex = bamfile, region = NULL,
 \item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
 \item{filterAltAlign}{Set to \code{TRUE} if you want to filter out reads with alternative mapping location.}
-
-\item{file}{Bamfile with aligned reads.}
 }
 \description{
 Import aligned reads from a BAM file into a \code{\link{GRanges}} object.

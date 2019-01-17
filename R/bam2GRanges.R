@@ -2,7 +2,7 @@
 #'
 #' Import aligned reads from a BAM file into a \code{\link{GRanges}} object.
 #'
-#' @param file Bamfile with aligned reads.
+#' @param bamfile Bamfile with aligned reads.
 #' @param bamindex Bam-index file with or without the .bai ending. If this file does not exist it will be created and a warning is issued.
 #' @param region If only a subset of the genomic regions should be loaded.
 #' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.

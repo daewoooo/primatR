@@ -11,7 +11,8 @@ Depends:
   GenomicRanges,
   ggplot2,
   RColorBrewer,
-  cowplot
+  cowplot,
+  scales
 Imports:
   methods,
   utils,
@@ -23,7 +24,8 @@ Imports:
   Rsamtools,
   GenomicAlignments,
   BiocGenerics,
-  gtools
+  gtools,
+  dplyr
 Suggests:
   knitr,
   BiocStyle,
