@@ -5,12 +5,12 @@
 \title{Plot 'dotplot' of two sequences.}
 \usage{
 plotNucmerCoords(nucmer.coords = NULL, genome.coord = TRUE,
-  highlight.region = NULL, title = NULL)
+  highlight.pos = NULL, title = NULL, sd.track = NULL)
 }
 \arguments{
 \item{nucmer.coords}{A coordinates from nucmer output. [RUN: nucmer --coords ...]}
 
-\item{highlight.region}{A set of postions to be highlighted on the x-axis.}
+\item{highlight.pos}{A set of postions to be highlighted on the x-axis.}
 
 \item{genome.coords}{Set to \code{TRUE} if you want to work in genomic coordinates.}
 }
