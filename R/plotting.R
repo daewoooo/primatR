@@ -442,12 +442,15 @@ plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highligh
   if (!is.null(sd.track) & genome.coord) {
     s1.gr <- GRanges(seqnames=s1.chr, ranges=IRanges(start=s1.range[1], end=s1.range[2]))
     sd.track <- subsetByOverlaps(sd.track, s1.gr)
-    sd.track.df <- as.data.frame(sd.track)
-    # make sure that sd regions do not extend over x axis region
-    sd.track.df$start[sd.track.df$start < start(s1.gr)] <- start(s1.gr)
-    sd.track.df$end[sd.track.df$end > end(s1.gr)] <- end(s1.gr)
-    
-    plt <- plt + geom_rect(data=sd.track.df  ,aes(xmin=start, xmax=end, ymin=Inf, ymax=-Inf), fill='gray', alpha=0.25, inherit.aes = FALSE)
+    sd.track <- reduce(sd.track)
+    if (length(sd.track) > 0) {
+      sd.track.df <- as.data.frame(sd.track)
+      # make sure that sd regions do not extend over x axis region
+      sd.track.df$start[sd.track.df$start < start(s1.gr)] <- start(s1.gr)
+      sd.track.df$end[sd.track.df$end > end(s1.gr)] <- end(s1.gr)
+      
+      plt <- plt + geom_rect(data=sd.track.df  ,aes(xmin=start, xmax=end, ymin=Inf, ymax=-Inf), fill='gray', alpha=0.25, inherit.aes = FALSE)
+    }  
   }
   ## Highlight user defined postion on x axis
   if (!is.null(title)) {
