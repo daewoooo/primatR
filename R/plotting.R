@@ -548,3 +548,146 @@ plotHICregional <- function(bamfile, region = NULL, min.mapq = 10, resolution = 
   message("DONE!!!")
   return(plots)
 }
+
+
+#' Plot read-pair coverage profile per breakpoint
+#'
+#' This function takes as an input aligned read-pairs in BAM and plots coverage profile per breakpoint.
+#' Breakpoint positions are stored as part of a readName.
+#' e.g. readName__chr1-109148195-109148196__chr1_invDup_gorilla_roi4_1
+#'
+#' @param plot.ambig Bamfile with aligned reads.
+#' @param plot.pairs Bamfile with aligned reads.
+#' @param view.range Bamfile with aligned reads.
+#' @inheritParams exportBedGraph 
+#' @return A \code{\link[ggplot2:ggplot]{ggplot}} object.
+#' @importFrom Rsamtools ScanBamParam scanBamFlag
+#' @importFrom GenomicAlignments readGAlignmentPairs first last getDumpedAlignments
+#' @importFrom tidyr separate
+#' @author David Porubsky
+#' @export 
+plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=5000, plot.ambig=FALSE, plot.pairs=FALSE, blacklist=NULL, view.range=100000) {
+  
+  filename <- basename(bamfile)
+  filename <- gsub(filename, pattern = "\\.bam$", replacement = "")
+  
+  ## Load paired reads from BAM
+  suppressWarnings( data.raw <- GenomicAlignments::readGAlignmentPairs(bamfile, param=Rsamtools::ScanBamParam(what=c('mapq', 'flag', 'qname'), flag=scanBamFlag(isDuplicate=FALSE))) ) 
+  data.first <- as(GenomicAlignments::first(data.raw), 'GRanges')
+  data.last <- as(GenomicAlignments::last(data.raw), 'GRanges')
+  
+  ## Plot ambiguous read pairs if TRUE
+  if (plot.ambig) {
+    data.dumped <- GenomicAlignments::getDumpedAlignments()
+    data.dumped.gr <- as(data.dumped, 'GRanges')
+  }  
+  
+  ## Filter by mapq
+  if (mapq > 0) {
+    mask <- data.first$mapq >= mapq &  data.last$mapq >= mapq
+    data.first <- data.first[mask]
+    data.last <- data.last[mask]
+  }  
+  ## Filter by flag
+  if (filt.flag > 0) {
+    bit.flag.first <- bitwAnd(filt.flag, data.first$flag)
+    bit.flag.last <- bitwAnd(filt.flag, data.last$flag)
+    mask <- bit.flag.first == 0 & bit.flag.last == 0
+    data.first <- data.first[mask]
+    data.last <- data.last[mask]
+  }  
+  ## Filter by read length
+  mask <- width(data.first) >= min.read.len & width(data.last) >= min.read.len
+  data.first <- data.first[mask]
+  data.last <- data.last[mask]
+  ## Filter out blacklisted regions
+  if (!is.null(blacklist)) {
+    hits.first <- findOverlaps(query = data.first, subject = blacklist)
+    hits.last <- findOverlaps(query = data.last, subject = blacklist)
+    filt <- c(queryHits(hits.first), queryHits(hits.last))
+    if (length(filt) > 0) {
+      data.first <- data.first[-filt]
+      data.last <- data.last[-filt]
+    }
+  }  
+  
+  ## Create final data object
+  data <- data.first
+  data$mate <- data.last
+  
+  ## Get breakpoint ID
+  data$ID <- sapply(data$qname, function(x) strsplit(x, "__")[[1]][2])
+  breakpoints <- data.frame(break.id = unique(data$ID))
+  ## Convert breakpoints to data.frame
+  breakpoints.df <- tidyr::separate(breakpoints, break.id, sep = "-", into = c('chr','start','end'), convert = TRUE)
+  
+  ## Get region boundaries
+  region.start <- min(breakpoints.df$start)
+  region.end <- max(breakpoints.df$end)
+  if (view.range > 0) {
+    x.min <- region.start - view.range
+    x.max <-region.end + view.range
+  }
+  
+  ## Plot coverage profile per breakpoint
+  data.grl <- split(data, data$ID)
+  plt.data <- list()
+  for (i in seq_along(data.grl)) {
+    gr <- data.grl[[i]]
+    ID <- unique(gr$ID)
+    cov <- coverage(gr)
+    cov.gr <- as(cov, 'GRanges')
+    cov.gr$ID <- ID
+    plt.data[[ID]] <- as.data.frame(cov.gr)
+  }
+  plt.df <- do.call(rbind, plt.data)
+  
+  ## Set random RGB colors
+  #color.rgb <- sapply(1:length(data.grl), function(x) round(runif(3, 0, 255)))
+  #color.rgb <- apply(color.rgb, 2, function(x) rgb(x[1], x[2], x[3], maxColorValue = 255))
+  
+  plots <- list()
+  plt <- ggplot(plt.df) +
+    geom_rect(aes(xmin=start, xmax=end, ymin=0, ymax=score, fill=ID)) + 
+    geom_vline(xintercept = c(breakpoints.df$start)) +
+    coord_cartesian(xlim = c(x.min, x.max)) +
+    scale_fill_manual(values = brewer.pal(n = length(data.grl), name = "Set1")) +
+    theme(legend.position="bottom") +
+    ggtitle("Breakpoint coverage")
+  plots[[length(plots)+1]] <- plt
+  
+  if (plot.pairs) {
+    plt.df <- as.data.frame(data)
+    plt.df$level <- unlist(sapply(table(plt.df$ID), function(x) 1:x), use.names = FALSE)
+    
+    plt <- ggplot(plt.df) + 
+      geom_segment(aes(x=start, xend=mate.start, y=level, yend=level), size=0.25) +
+      geom_point(aes(x=start, y=level, color=strand), shape=108) +
+      geom_point(aes(x=mate.start, y=level, color=mate.strand), shape=108) +
+      geom_vline(xintercept = c(breakpoints.df$start)) +
+      coord_cartesian(xlim = c(x.min, x.max)) + 
+      theme(legend.position="bottom",
+            axis.title.y=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks.y=element_blank()) +
+      ggtitle("Read-pair links") +
+      xlab('')
+    plots[[length(plots)+1]] <- plt
+  }
+  
+  if (plot.ambig) {
+    plt.df <- as.data.frame(data.dumped.cov.gr)
+    
+    plt <- ggplot(plt.df) +
+      geom_rect(aes(xmin=start, xmax=end, ymin=0, ymax=score, fill=ID), fill='orange') + 
+      geom_vline(xintercept = c(breakpoints.df$start)) +
+      coord_cartesian(xlim = c(x.min, x.max)) +
+      theme(legend.position="bottom") +
+      xlab('Genomic position (bp)') +
+      ggtitle("Coverage of ambiguous read pairs")
+    plots[[length(plots)+1]] <- plt
+  }
+  
+  final.plt <- cowplot::plot_grid(plotlist = plots, ncol = 1)
+  return(final.plt)
+} 
