@@ -124,7 +124,7 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
       } 
           
       ## Store inter- and intra-links in separate objects
-      if (!is.null(link.df)) {
+      if (!is.null(link.df) & length(link.gr) > 0) {
         #print(link.df)
         chroms <- strsplit(unique(link.gr$chr.link), "_")[[1]]
         if (chroms[1] == chroms[2]) {

@@ -25,7 +25,8 @@ Imports:
   GenomicAlignments,
   BiocGenerics,
   gtools,
-  dplyr
+  dplyr,
+  tidyr
 Suggests:
   knitr,
   BiocStyle,
