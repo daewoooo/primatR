@@ -5,11 +5,12 @@
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param colName A metacolumn name to be sumarized and plotted.
 #' @param facedID A metacolumn name to be used to split data in sub-plots.
+#' @param colors A user defined set of colors used for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
 
-plotColumnCounts <- function(gr, colName='gen', facetID=NULL) {
+plotColumnCounts <- function(gr, colName='gen', facetID=NULL, colors=NULL) {
   plt.df <- as.data.frame(gr)
   ## Use user defined name of the column to plot
   if (is.null(facetID)) {
@@ -18,9 +19,19 @@ plotColumnCounts <- function(gr, colName='gen', facetID=NULL) {
     data.tab <- plt.df %>% group_by(.dots=c(eval(facetID), eval(colName) )) %>% summarize(counts = length(eval(parse(text = colName))))
   }
   
-  plt <- ggplot(data.tab) + geom_col(aes_string(x=eval(colName), y='counts', fill=eval(colName)))
+  ## Set colors
+  col.categs <- length(unique(plt.df$ID))
+  if (is.null(colors)) {
+    col <- brewer.pal(n = col.categs, name = "Set1")
+  } else if (length(colors) < col.categs) {
+    message("Not enough colors specified!!! Please provide ", col.categs, "distict colors")
+  } else {
+    col <- colors
+  }
+  
+  plt <- ggplot(data.tab) + geom_col(aes_string(x=eval(colName), y='counts', fill=eval(facetID)))
   plt <- plt + geom_text(data=data.tab, aes_string(x=eval(colName), y='counts', label='counts'), vjust=0)
-  plt <- plt + scale_fill_manual(values = brewer.pal(n = 9, name = "Set1"), guide='none')
+  plt <- plt + scale_fill_manual(values = col, guide='none')
   plt <- plt + theme_bw() + xlab("")
   
   if (!is.null(facetID)) {
@@ -107,22 +118,36 @@ basesPerGenotypePerChr <- function(gr, normChrSize=FALSE) {
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param plotUniqueBases Set to \code{TRUE} if you want to plot size of unique bases per range.
 #' @param violin Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.
+#' @param colors A user defined set of colors used for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
 
-rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
+rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colors=NULL) {
   inv.sizes.ord <- order(width(gr), decreasing = FALSE)
   if (plotUniqueBases) {
-    size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], uniqueBases=gr$TotalUniqueBases[inv.sizes.ord], ID=gr$ID[inv.sizes.ord])
+    size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], uniqueBases=gr$TotalUniqueBases[inv.sizes.ord], ID=gr$ID[inv.sizes.ord], stringsAsFactors = FALSE)
   } else {
-    size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], ID=gr$ID[inv.sizes.ord])
+    size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], ID=gr$ID[inv.sizes.ord], stringsAsFactors = FALSE)
   }  
   
+  ## Get median size distribution per ID
+  size.dist.df <- size.dist.df %>% group_by(ID) %>% mutate(med_size = median(size))
+  
+  ## Set colors
+  col.categs <- length(unique(size.dist.df$ID))
+  if (is.null(colors)) {
+    col <- brewer.pal(n = col.categs, name = "Set1")
+  } else if (length(colors) < col.categs) {
+    message("Not enough colors specified!!! Please provide ", col.categs, "distict colors")
+  } else {
+    col <- colors
+  }
+  
   if (violin) {
-    plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE)
-    plt <- plt + geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1)
-    plt <- plt + scale_fill_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
+    plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE) +
+           geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1) +
+           scale_fill_manual(values = col, name="")
   } else {
     plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID))
     if (plotUniqueBases) {
@@ -130,10 +155,14 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE) {
     }
   }
   
-  plt <- plt + scale_y_continuous(breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10')
-  plt <- plt + geom_hline(yintercept = c(10000, 1000000), linetype="dashed")
-  plt <- plt + scale_color_manual(values = brewer.pal(n = 4, name = "Set1"), name="")
-  plt <- plt + xlab("Size sorted inversions") + ylab("Inversion size (log10)")
+  plt <- plt + 
+         scale_y_continuous(breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10') +
+         geom_hline(yintercept = c(10000, 1000000), linetype="dashed") +
+         scale_color_manual(values = col, name="") +
+         xlab("Size sorted inversions") + ylab("Inversion size (log10)") +
+         facet_grid(ID ~ .) +
+         geom_hline(aes(yintercept = med_size, group=ID), color="red") +
+         geom_text(aes(x = 1, y = med_size, label=med_size), color="red", vjust=-0.5)
   return(plt)
 }  
 
@@ -174,12 +203,15 @@ eventsPerChrSizeScatter <- function(gr, bsgenome) {
 #' Ranges are color by the 'ID' column.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
+#' @param userTrack ...
+#' @param userTrackGeom ...
+#' @param colors A user defined set of colors used for plotting.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
 
-genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', bsgenome=NULL) {
+genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', colors=NULL, bsgenome=NULL) {
   if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
     message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
   }
@@ -192,14 +224,26 @@ genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', bsgen
     }
   }
   
+  ## Prepare ideo data for plotting
   seq.len <- seqlengths(bsgenome)[paste0('chr', c(1:22, 'X'))]
   ideo.df <- data.frame(seqnames=names(seq.len), length=seq.len)
   ideo.df$seqnames <- factor(ideo.df$seqnames, levels=paste0('chr', c(1:22, 'X')))
   
+  ## Prepare ranged data for plotting
   gr$level <- GenomicRanges::disjointBins(gr)
   plt.df <- as.data.frame(gr)
   
-  plt <- ggplot(ideo.df) + geom_linerange(aes(x=-1, ymin=0, ymax=length), size=2, color="black")
+  ## Set colors
+  col.categs <- length(unique(plt.df$ID))
+  if (is.null(colors)) {
+    col <- brewer.pal(n = col.categs, name = "Set1")
+  } else if (length(colors) < col.categs) {
+    message("Not enough colors specified!!! Please provide ", col.categs, "distict colors")
+  } else {
+    col <- colors
+  }
+  
+  plt <- ggplot(ideo.df) + geom_linerange(aes(x=-1, ymin=0, ymax=length), size=2, color="gray36")
   if (!is.null(userTrack)) {
     strand(userTrack) <- "*"
     userTrack <- reduce(userTrack)
@@ -214,14 +258,16 @@ genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', bsgen
       plt <- plt + geom_point(data=userTrack.df, aes(x=-1, y=midpoint), size=1, color="darkgoldenrod1")
     }
   }
-  plt <- plt + coord_flip() + facet_grid(seqnames ~ ., switch = 'y')
-  plt <- plt + geom_linerange(data=plt.df , aes(x=level, ymin=start, ymax=end+250000, color=ID), size=1)
-  plt <- plt + scale_color_manual(values =  RColorBrewer::brewer.pal(n = 4, name = "Set1"), name="")
-  plt <- plt + scale_y_continuous(expand = c(0,0))
-  plt <- plt + theme_void()
-  plt <- plt + theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank())
-  plt <- plt + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-  plt <- plt + theme(strip.text.y = element_text(angle = 180))
+  plt <- plt + 
+    coord_flip() + 
+    facet_grid(seqnames ~ ., switch = 'y') +
+    geom_linerange(data=plt.df , aes(x=level, ymin=start, ymax=end+250000, color=ID), size=1) +
+    scale_color_manual(values =  col, name="") +
+    scale_y_continuous(expand = c(0,0)) +
+    theme_void() +
+    theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    theme(strip.text.y = element_text(angle = 180))
   return(plt)
 }
 
@@ -569,7 +615,6 @@ plotHICregional <- function(bamfile, region = NULL, min.mapq = 10, resolution = 
 plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=5000, plot.ambig=FALSE, plot.pairs=FALSE, blacklist=NULL, view.range=100000) {
   
   filename <- basename(bamfile)
-  filename <- gsub(filename, pattern = "\\.bam$", replacement = "")
   
   ## Load paired reads from BAM
   suppressWarnings( data.raw <- GenomicAlignments::readGAlignmentPairs(bamfile, param=Rsamtools::ScanBamParam(what=c('mapq', 'flag', 'qname'), flag=scanBamFlag(isDuplicate=FALSE))) ) 
@@ -647,11 +692,15 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
   #color.rgb <- apply(color.rgb, 2, function(x) rgb(x[1], x[2], x[3], maxColorValue = 255))
   
   plots <- list()
+  ## Prepare title
+  title <- ggdraw() + draw_label(filename, fontface='bold')
+  plots[[length(plots)+1]] <- title
+  
   plt <- ggplot(plt.df) +
     geom_rect(aes(xmin=start, xmax=end, ymin=0, ymax=score, fill=ID)) + 
     geom_vline(xintercept = c(breakpoints.df$start)) +
     coord_cartesian(xlim = c(x.min, x.max)) +
-    scale_fill_manual(values = brewer.pal(n = length(data.grl), name = "Set1")) +
+    scale_fill_manual(values = brewer.pal(n = max(3, length(data.grl)), name = "Set1")) +
     theme(legend.position="bottom") +
     ggtitle("Breakpoint coverage")
   plots[[length(plots)+1]] <- plt
@@ -676,6 +725,8 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
   }
   
   if (plot.ambig) {
+    data.dumped.cov <- coverage(data.dumped.gr)
+    data.dumped.cov.gr <- as(data.dumped.cov, "GRanges")
     plt.df <- as.data.frame(data.dumped.cov.gr)
     
     plt <- ggplot(plt.df) +
@@ -688,6 +739,8 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
     plots[[length(plots)+1]] <- plt
   }
   
-  final.plt <- cowplot::plot_grid(plotlist = plots, ncol = 1)
+  heights <- c(0.1, rep(1, length(plots)-1))
+  
+  final.plt <- cowplot::plot_grid(plotlist = plots, ncol = 1, rel_heights = heights)
   return(final.plt)
 } 

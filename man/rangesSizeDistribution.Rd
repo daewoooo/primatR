@@ -4,7 +4,8 @@
 \alias{rangesSizeDistribution}
 \title{Plot sorted size distribution of ranged data.}
 \usage{
-rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE)
+rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE,
+  colors = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
@@ -12,6 +13,8 @@ rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE)
 \item{plotUniqueBases}{Set to \code{TRUE} if you want to plot size of unique bases per range.}
 
 \item{violin}{Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.}
+
+\item{colors}{A user defined set of colors used for plotting.}
 }
 \value{
 A \code{ggplot} object.

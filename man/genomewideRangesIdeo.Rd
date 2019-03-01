@@ -6,10 +6,16 @@
 Ranges are color by the 'ID' column.}
 \usage{
 genomewideRangesIdeo(gr, userTrack = NULL, userTrackGeom = "rect",
-  bsgenome = NULL)
+  colors = NULL, bsgenome = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
+
+\item{userTrack}{...}
+
+\item{userTrackGeom}{...}
+
+\item{colors}{A user defined set of colors used for plotting.}
 
 \item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
 }

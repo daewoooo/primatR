@@ -4,12 +4,14 @@
 \alias{plotColumnCounts}
 \title{Plot categorized metacolumns of ranged data.}
 \usage{
-plotColumnCounts(gr, colName = "gen", facetID = NULL)
+plotColumnCounts(gr, colName = "gen", facetID = NULL, colors = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
 
 \item{colName}{A metacolumn name to be sumarized and plotted.}
+
+\item{colors}{A user defined set of colors used for plotting.}
 
 \item{facedID}{A metacolumn name to be used to split data in sub-plots.}
 }

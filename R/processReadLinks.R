@@ -5,7 +5,6 @@
 #'
 #' @param gr.links A \code{\link{GRanges-class}} object with stored links between read pairs.
 #' @inheritParams readPairsAsLinks
-#' @importFrom scales comma
 #' @author David Porubsky
 #' @export
 
@@ -17,8 +16,6 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
     counts <- list()
     for (i in 1:nrow(comb.read.IDs)) { 
       pair <- comb.read.IDs[i,]
-      #unique.links <- unique(match(readIDs[[pair[1]]], readIDs[[pair[2]]]))
-      #count <- length(unique.links[!is.na(unique.links)])
       count <-  length(intersect(readIDs[[pair[1]]], readIDs[[pair[2]]]))
       counts[[i]] <- c(pair, count)
     }
@@ -41,7 +38,6 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
   ## Remove links with the same start and end position
   links.gr$link <- paste0(links.gr$x, "_", links.gr$xend)
   links.gr <- links.gr[!duplicated(links.gr$link),]
-  ## Remove links with the same start and end position
   links.gr <- links.gr[links.gr$x != links.gr$xend,]
   ## Filter only user defined chromosomes
   mask <- as.vector(seqnames(links.gr)) %in% chromosomes & as.vector(seqnames(links.gr$to.gr)) %in% chromosomes
@@ -53,8 +49,6 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
   links.gr$y <- match(links.gr$y, as.character(chromosomes))
   links.gr$yend <- match(links.gr$yend, as.character(chromosomes))
   ## Make sure that at least one break resides on chromosome of origin
-  #mask <- plt.df$break.chr != plt.df$y & plt.df$break.chr != plt.df$yend
-  #plt.df <- plt.df %>% filter(break.chr == y | break.chr == yend)
   links.gr <- links.gr[links.gr$break.chr == links.gr$y | links.gr$break.chr == links.gr$yend]
   
   ## Add links between chromosomes
@@ -76,8 +70,8 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
   breaks.grl <- split(links.gr.filt, links.gr.filt$ID)
   intra.links.count <- 0
   inter.links.count <- 0
-  intra.links.list <- list()
-  inter.links.list <- list()
+  intra.links.list <- GRangesList()
+  inter.links.list <- GRangesList()
   final.links <- GRangesList()
   for (i in seq_along(breaks.grl)) {
     #print(i)
@@ -86,7 +80,8 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
     links.grl <- split(break.gr, break.gr$chr.link)
 
     for (j in seq_along(links.grl)) {
-      link.df <- NULL
+      #link.df <- NULL
+      link.processed.gr <- NULL
       link.gr <- links.grl[[j]]
       ## Get collapsed genomic regions of selected links
       link.ID <- unique(link.gr$ID)
@@ -102,7 +97,6 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
       mask2 <- findOverlaps(link.gr$to.gr, regions)
       mask <- intersect(queryHits(mask1), queryHits(mask2))
       link.gr <- link.gr[mask]
-      #link.gr <- subsetByOverlaps(link.gr, regions)
       ## Store all links in a list
       final.links[[length(final.links) + 1]] <- link.gr
       
@@ -111,42 +105,88 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
         hits <- findOverlaps(all.ranges, regions)
         read.names <- split(all.ranges$qname, subjectHits(hits))
         link.counts <- getUniqueLinks(readIDs = read.names)
-        max.link.idx <- which.max(link.counts[,3])
-        if (link.counts[max.link.idx, 3] >= min.reads) {
-          region.IDs <- link.counts[max.link.idx, c(1:2)]
-          link.count <- link.counts[max.link.idx, 3]
-          regions.new <- as.character(regions[region.IDs])
-          link.df <- data.frame(roi.ID=roi.ID, break.ID=link.ID, region1=regions.new[1], region2=regions.new[2], link.count=link.count)
-        }
+        max.link.idx <- which.max(link.counts[,3])  ## TODO check within chrom links being exported!!!
+        #if (link.counts[max.link.idx, 3] >= min.reads) {
+        region.IDs <- link.counts[max.link.idx, c(1:2)]
+        link.count <- link.counts[max.link.idx, 3]
+        regions.new <- regions[region.IDs]
+        
+        ## Store processed links
+        link.processed.gr <- regions.new[1]
+        link.processed.gr$to.gr <- regions.new[2]
+        link.processed.gr$roi.ID <- roi.ID
+        link.processed.gr$break.ID <- link.ID
+        link.processed.gr$x <- link.gr$y[1]
+        link.processed.gr$xend <- link.gr$yend[1]
+        link.processed.gr$link.count <- link.count
       } else {
         link.count <- countOverlaps(regions, all.ranges)
-        link.df <- data.frame(roi.ID=roi.ID, break.ID=link.ID, region1=as.character(regions), region2=as.character(regions), link.count=link.count)
+        ## Store processed links
+        link.processed.gr <- regions
+        link.processed.gr$to.gr <- regions
+        link.processed.gr$roi.ID <- roi.ID
+        link.processed.gr$break.ID <- link.ID
+        link.processed.gr$x <- link.gr$y[1]
+        link.processed.gr$xend <- link.gr$yend[1]
+        link.processed.gr$link.count <- link.count
       } 
           
       ## Store inter- and intra-links in separate objects
-      if (!is.null(link.df) & length(link.gr) > 0) {
+      if (!is.null(link.processed.gr) & length(link.gr) > 0) {
         #print(link.df)
         chroms <- strsplit(unique(link.gr$chr.link), "_")[[1]]
         if (chroms[1] == chroms[2]) {
           intra.links.count <- intra.links.count + 1
           link.df$valid.ID <- paste0('valid', length(intra.links.list) + 1)
-          intra.links.list[[length(intra.links.list) + 1]] <-  link.df
+          intra.links.list[[length(intra.links.list) + 1]] <-  link.processed.gr
         } else {
           inter.links.count <- inter.links.count + 1
           link.df$valid.ID <- paste0('valid', length(inter.links.list) + 1)
-          inter.links.list[[length(inter.links.list) + 1]] <-  link.df
+          inter.links.list[[length(inter.links.list) + 1]] <-  link.processed.gr
         }
       }  
     }
   }  
 
   ## Export final data objects
-  intra.links <- do.call(rbind, intra.links.list)
-  inter.links <- do.call(rbind, inter.links.list)
+  intra.links <- do.call(c, intra.links.list)
+  inter.links <- do.call(c, inter.links.list)
   final.links <- unlist(final.links, use.names = FALSE)
   missed.bams <- assessed.bams[!assessed.bams %in% unique(final.links$bam.name)]
   
-  plt.df <- as.data.frame(final.links)
+  ## Collapse overlapping regions
+  intra.links.hits <- findOverlaps(intra.links, drop.self=TRUE, select = 'first')
+  inter.links.hits <- findOverlaps(inter.links, drop.self=TRUE, select = 'first')
+  
+  return(list(links.gr=final.links, intra.links=intra.links, inter.links=inter.links, assessed.breaks=assessed.breaks, missed.bams=missed.bams))
+}  
+    
+
+#' Plot significant connections between read pairs
+#' 
+#' This function takes condidate filtered links exported from function 'processReadLinks'
+#'
+#' @param links A \code{\link{GRanges-class}} object with stored links between read pairs.
+#' @inheritParams readPairsAsLinks
+#' @importFrom scales comma
+#' @author David Porubsky
+#' @export
+plotLinks <- function(links=NULL) {
+  links.intra <- links$intra.links
+  links.inter <- links$inter.links
+  
+  ## Create non-redundant links
+  # inter.hits1 <- findOverlaps(links.inter, drop.self=TRUE, select = "first")
+  # inter.hits2 <- findOverlaps(links.inter$to.gr, drop.self=TRUE, select = "first")
+  # mask.inter <- inter.hits1 == inter.hits2
+  # mask.inter[is.na(mask.inter)] <- FALSE
+  # intra.hits1 <- findOverlaps(links.intra, drop.self=TRUE, select = "first")
+  # intra.hits2 <- findOverlaps(links.intra$to.gr, drop.self=TRUE, select = "first")
+  # mask.intra <- intra.hits1 == intra.hits2
+  # mask.intra[is.na(mask.intra)] <- FALSE
+  
+  links.inter.df <- as.data.frame(links.inter)
+  links.intra.df <- as.data.frame(links.intra)
   
   ## Prepare genome-wide ideogram
   seq.len <- seqlengths(bsgenome)[chromosomes]
@@ -155,9 +195,9 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
   ideo.df$levels <- 1:length(seq.len)
   ideo <- ggplot(ideo.df) + geom_linerange(aes(x=levels, ymin=0, ymax=length), size=1, color='black')
   
-  ## Add links to the ideogram
+  ## Add inter chromosomal links to the ideogram
   plt <- ideo +
-    geom_curve(data=plt.df, aes(x = y, y = start, xend = yend, yend = to.gr.start), color="red", curvature = 0.25) + 
+    geom_curve(data=links.inter.df, aes(x = x, y = start, xend = xend, yend = to.gr.end), color="red", curvature = 0.25) +
     scale_y_continuous(labels = comma) +
     scale_x_continuous(breaks = ideo.df$levels, labels = ideo.df$seqnames) +
     guides(colour = guide_legend(override.aes = list(alpha=1))) +
@@ -165,10 +205,33 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
     ylab("Genomic position (bp)") +
     xlab("Chromosome")
   
-  ## Add some statistics
-  plt <- plt + annotate(geom="text", x=23, y=250000000, label=paste0("Assessed breaks: ", assessed.breaks, "\n"), color="black", hjust=1)
-  plt <- plt + annotate(geom="text", x=23, y=250000000-10000000, label=paste0("Intra-chromosomal breaks: ", intra.links.count, "\n"), color="black", hjust=1)
-  plt <- plt + annotate(geom="text", x=23, y=250000000-20000000, label=paste0("Inter-chromosomal breaks: ", inter.links.count, "\n"), color="black", hjust=1)
+  ## Add inter chromosomal links to the ideogram
+  plt <- plt +
+    geom_curve(data=links.intra.df, aes(x = x, y = start, xend = xend, yend = to.gr.end), color="orange", curvature = 0.25)
   
-  return(list(plot=plt, links.gr=final.links, intra.links=intra.links, inter.links=inter.links, missed.bams=missed.bams))
+  ## Add points of all intra-chromosomal links
+  intra.points.df <- data.frame(x=c(links.intra.df$x, links.intra.df$xend), y=c(links.intra.df$start, links.intra.df$to.gr.end), roi.ID=rep(links.intra.df$roi.ID, 2))
+  plt <- plt +  
+    geom_point(data=intra.points.df, aes(x = x, y = y), color="orange", shape=95, size=5, inherit.aes = FALSE)
+  
+  ## Add some count statistics
+  all.assessed.breaks <- links$assessed.breaks
+  intra.links.count <- length(links.intra)
+  inter.links.count <- length(links.inter)
+  #unique.inter <- length(unique(links.inter$break.ID))
+  #unique.intra <- length(unique(links.intra$break.ID))
+  inter.and.intra.breaks <- length(intersect(links.intra$break.ID, links.inter$break.ID))
+  only.intra <- length(unique(setdiff(links.intra$break.ID, links.inter$break.ID)))
+  only.inter <- length(unique(setdiff(links.inter$break.ID, links.intra$break.ID)))
+  multi.inter <- length(links.inter[duplicated(links.inter$break.ID)])
+  
+  plt <- plt + annotate(geom="text", x=23, y=250000000, label=paste0("All assessed breaks: ", all.assessed.breaks, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-10000000, label=paste0("All intra-chromosomal breaks: ", intra.links.count, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-20000000, label=paste0("All inter-chromosomal breaks: ", inter.links.count, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-30000000, label=paste0("Only intra-chromosomal breaks: ", only.intra, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-40000000, label=paste0("Only inter-chromosomal breaks: ", only.inter, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-50000000, label=paste0("Both intra & inter breaks: ", inter.and.intra.breaks, "\n"), color="black", hjust=1)
+  plt <- plt + annotate(geom="text", x=23, y=250000000-60000000, label=paste0("Multi-location inter-chromosomal breaks: ", multi.inter, "\n"), color="black", hjust=1)
+  
+  return(plt)
 }

@@ -28,11 +28,11 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
   is.Paired <- Rsamtools::testPairedEndBam(file = bamfile, index = bamindex)
   if (pairedEndReads) {
     if (!is.Paired) {
-      warning("You are trying to process single-ended BAM as paired-ended, Please set proper BAM directioanlity!!!")
+      warning("You are trying to process single-ended BAM as paired-ended, Please set proper BAM protocol!!!")
     } 
   } else {
     if (is.Paired) {
-      warning("You are trying to process paired-ended BAM as single-ended, Please set proper BAM directioanlity!!!")
+      warning("You are trying to process paired-ended BAM as single-ended, Please set proper BAM protocol!!!")
     }  
   }
   
@@ -46,9 +46,10 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
   ## Second mate of the pair will inherit directionality from the first mate of the pair
   if (pairedEndReads) {
     data.first <- as(GenomicAlignments::first(data.raw), 'GRanges')
-    data.last <- as(GenomicAlignments::last(data.raw), 'GRanges')
-    strand(data.last) <- strand(data.first)
-    data <- GenomicRanges::sort(c(data.first, data.last), ignore.strand=TRUE)
+    #data.last <- as(GenomicAlignments::last(data.raw), 'GRanges')
+    #strand(data.last) <- strand(data.first)
+    #data <- GenomicRanges::sort(c(data.first, data.last), ignore.strand=TRUE)
+    data <- data.first
   } else {
     data <- as(data.raw, 'GRanges')
   }

@@ -34,50 +34,55 @@ exportBedGraph <- function(bamfile, outputdirectory=".", mapq=10, filt.flag=0, m
   }  
   ## filter by read length
   data <- data[width(data) >= min.read.len]
-  ## Get breakpoint ID
-  data$ID <- sapply(data$qname, function(x) strsplit(x, "__")[[1]][2])
-  ## Split by breakpoint
-  data.grl <- GenomicRanges::split(data, data$ID)
   
-  ## Set RGB colors
-  #colors <- RColorBrewer::brewer.pal(n = length(data.grl), name = 'Set1')
-  #color.rgb <- grDevices::col2rgb(colors)
-  #color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
-  
-  ## Set random RGB colors
-  color.rgb <- sapply(1:length(data.grl), function(x) round(runif(3, 0, 255)))
-  color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
-  
-  ## Create file to save results
-  savefile <- paste0(filename, "_", ".bedgraph.gz")
-  destination <- file.path(outputdirectory, savefile)
-  savefile.gz <- gzfile(destination, 'w')
-  for (i in seq_along(data.grl)) {
-    gr <- data.grl[[i]]
-    gr <- GenomeInfoDb::keepSeqlevels(gr, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
-    cov <- GenomicRanges::coverage(gr)
-    cov.gr <- as(cov, 'GRanges')
+  if (length(data) > 0) {
+    ## Get breakpoint ID
+    data$ID <- sapply(data$qname, function(x) strsplit(x, "__")[[1]][2])
+    ## Split by breakpoint
+    data.grl <- GenomicRanges::split(data, data$ID)
     
-    ## Filter out regions that overlap with user defined blacklisted regions
-    if (class(blacklist) == "GRanges") {
-      hits <- GenomicRanges::findOverlaps(cov.gr, blacklist)
-      cov.gr <- cov.gr[-queryHits(hits)]
+    ## Set RGB colors
+    #colors <- RColorBrewer::brewer.pal(n = length(data.grl), name = 'Set1')
+    #color.rgb <- grDevices::col2rgb(colors)
+    #color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
+    
+    ## Set random RGB colors
+    color.rgb <- sapply(1:length(data.grl), function(x) round(runif(3, 0, 255)))
+    color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
+    
+    ## Create file to save results
+    savefile <- paste0(filename, "_", ".bedgraph.gz")
+    destination <- file.path(outputdirectory, savefile)
+    savefile.gz <- gzfile(destination, 'w')
+    for (i in seq_along(data.grl)) {
+      gr <- data.grl[[i]]
+      gr <- GenomeInfoDb::keepSeqlevels(gr, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
+      cov <- GenomicRanges::coverage(gr)
+      cov.gr <- as(cov, 'GRanges')
+      
+      ## Filter out regions that overlap with user defined blacklisted regions
+      if (class(blacklist) == "GRanges") {
+        hits <- GenomicRanges::findOverlaps(cov.gr, blacklist)
+        cov.gr <- cov.gr[-queryHits(hits)]
+      }
+      
+      ## Get 2 max covered region for each breakpoint
+      cov.gr.perChr <- GenomicRanges::split(cov.gr, seqnames(cov.gr))
+      bases.total <- sapply(cov.gr.perChr, function(x) sum(x$score))
+      bases.total <- sort(bases.total, decreasing = T)[1:2]
+      max.bases <- paste0(names(bases.total), "-", bases.total)
+      max.bases <- paste(max.bases, collapse = "_")
+      
+      header<- paste0('track type=bedGraph name=', unique(gr$ID), ' description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
+      write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
+      
+      bedF <- data.frame(cov.gr)[c('seqnames','start','end','score')]
+      write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
     }
-    
-    ## Get 2 max covered region for each breakpoint
-    cov.gr.perChr <- split(cov.gr, seqnames(cov.gr))
-    bases.total <- sapply(cov.gr.perChr, function(x) sum(x$score))
-    bases.total <- sort(bases.total, decreasing = T)[1:2]
-    max.bases <- paste0(names(bases.total), "-", bases.total)
-    max.bases <- paste(max.bases, collapse = "_")
-    
-    header<- paste0('track type=bedGraph name=', unique(gr$ID), ' description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
-    write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
-    
-    bedF <- data.frame(cov.gr)[c('seqnames','start','end','score')]
-    write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
-  }
-  close(savefile.gz)
+    close(savefile.gz)
+  } else {
+    message("    No reads to export, skipping ...")
+  } 
 }
 
 exportBedGraphPairs <- function(bamfile, outputdirectory=".", mapq=10, filt.flag=0, min.read.len=5000, blacklist=NULL) {
@@ -122,53 +127,57 @@ exportBedGraphPairs <- function(bamfile, outputdirectory=".", mapq=10, filt.flag
   data <- data.first
   data$mate <- data.last
   
-  ## Get breakpoint ID
-  data$ID <- sapply(data$qname, function(x) strsplit(x, "__")[[1]][2])
-  ## Split by breakpoint
-  data.grl <- GenomicRanges::split(data, data$ID)
-  
-  ## Set random RGB colors
-  color.rgb <- sapply(1:length(data.grl), function(x) round(runif(3, 0, 255)))
-  color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
-  
-  ## Create file to save results
-  savefile <- paste0(filename, "_", ".bedgraph.gz")
-  destination <- file.path(outputdirectory, savefile)
-  savefile.gz <- gzfile(destination, 'w')
-  for (i in seq_along(data.grl)) {
-    gr <- data.grl[[i]]
-    gr.mate1 <- gr[,0]
-    gr.mate2 <- gr$mate[,0]
-    ## Keep only standard chromosomes
-    gr.mate1 <- GenomeInfoDb::keepSeqlevels(gr.mate1, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
-    gr.mate2 <- GenomeInfoDb::keepSeqlevels(gr.mate2, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
-    ## Calculate coverage separately for mate1 and mate2
-    cov.mate1 <- GenomicRanges::coverage(gr.mate1)
-    cov.mate1.gr <- as(cov.mate1, 'GRanges')
-    cov.mate2 <- GenomicRanges::coverage(gr.mate2)
-    cov.mate2.gr <- as(cov.mate2, 'GRanges')
+  if (length(data) > 0) {
+    ## Get breakpoint ID
+    data$ID <- sapply(data$qname, function(x) strsplit(x, "__")[[1]][2])
+    ## Split by breakpoint
+    data.grl <- GenomicRanges::split(data, data$ID)
     
-    ## Get 2 max covered region for each breakpoint
-    cov.gr <- c(cov.mate1.gr, cov.mate2.gr)
-    cov.gr.perChr <- split(cov.gr, seqnames(cov.gr))
-    bases.total <- sapply(cov.gr.perChr, function(x) sum(x$score))
-    bases.total <- sort(bases.total, decreasing = T)[1:2]
-    max.bases <- paste0(names(bases.total), "-", bases.total)
-    max.bases <- paste(max.bases, collapse = "_")
+    ## Set random RGB colors
+    color.rgb <- sapply(1:length(data.grl), function(x) round(runif(3, 0, 255)))
+    color.rgb <- apply(color.rgb, 2, function(x) paste(x, collapse = ","))
     
-    ## Print mate1 to bedgraph
-    header<- paste0('track type=bedGraph name=', unique(gr$ID), '_mate1 description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
-    write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
-    
-    bedF <- data.frame(cov.mate1.gr)[c('seqnames','start','end','score')]
-    write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
-    
-    ## Print mate2 to bedgraph
-    header<- paste0('track type=bedGraph name=', unique(gr$ID), '_mate2 description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
-    write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
-    
-    bedF <- data.frame(cov.mate2.gr)[c('seqnames','start','end','score')]
-    write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
-  }
-  close(savefile.gz)
+    ## Create file to save results
+    savefile <- paste0(filename, "_", ".bedgraph.gz")
+    destination <- file.path(outputdirectory, savefile)
+    savefile.gz <- gzfile(destination, 'w')
+    for (i in seq_along(data.grl)) {
+      gr <- data.grl[[i]]
+      gr.mate1 <- gr[,0]
+      gr.mate2 <- gr$mate[,0]
+      ## Keep only standard chromosomes
+      gr.mate1 <- GenomeInfoDb::keepSeqlevels(gr.mate1, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
+      gr.mate2 <- GenomeInfoDb::keepSeqlevels(gr.mate2, paste0('chr', c(1:22,'X')), pruning.mode = 'coarse')
+      ## Calculate coverage separately for mate1 and mate2
+      cov.mate1 <- GenomicRanges::coverage(gr.mate1)
+      cov.mate1.gr <- as(cov.mate1, 'GRanges')
+      cov.mate2 <- GenomicRanges::coverage(gr.mate2)
+      cov.mate2.gr <- as(cov.mate2, 'GRanges')
+      
+      ## Get 2 max covered region for each breakpoint
+      cov.gr <- c(cov.mate1.gr, cov.mate2.gr)
+      cov.gr.perChr <- split(cov.gr, seqnames(cov.gr))
+      bases.total <- sapply(cov.gr.perChr, function(x) sum(x$score))
+      bases.total <- sort(bases.total, decreasing = T)[1:2]
+      max.bases <- paste0(names(bases.total), "-", bases.total)
+      max.bases <- paste(max.bases, collapse = "_")
+      
+      ## Print mate1 to bedgraph
+      header<- paste0('track type=bedGraph name=', unique(gr$ID), '_mate1 description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
+      write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
+      
+      bedF <- data.frame(cov.mate1.gr)[c('seqnames','start','end','score')]
+      write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
+      
+      ## Print mate2 to bedgraph
+      header<- paste0('track type=bedGraph name=', unique(gr$ID), '_mate2 description=SplittedPacBioReads_', filename, '_', max.bases,' visibility=full color=', color.rgb[i])
+      write.table(header, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=FALSE, sep='\t')
+      
+      bedF <- data.frame(cov.mate2.gr)[c('seqnames','start','end','score')]
+      write.table(bedF, file=savefile.gz, row.names=FALSE, col.names=FALSE, quote=FALSE, append=TRUE, sep='\t')
+    }
+    close(savefile.gz)
+  } else {
+    message("    No reads to export after data filtering!!!")
+  } 
 }
