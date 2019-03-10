@@ -137,11 +137,11 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
         chroms <- strsplit(unique(link.gr$chr.link), "_")[[1]]
         if (chroms[1] == chroms[2]) {
           intra.links.count <- intra.links.count + 1
-          link.df$valid.ID <- paste0('valid', length(intra.links.list) + 1)
+          link.gr$valid.ID <- paste0('valid', length(intra.links.list) + 1)
           intra.links.list[[length(intra.links.list) + 1]] <-  link.processed.gr
         } else {
           inter.links.count <- inter.links.count + 1
-          link.df$valid.ID <- paste0('valid', length(inter.links.list) + 1)
+          link.gr$valid.ID <- paste0('valid', length(inter.links.list) + 1)
           inter.links.list[[length(inter.links.list) + 1]] <-  link.processed.gr
         }
       }  
