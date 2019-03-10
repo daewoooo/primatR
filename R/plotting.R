@@ -123,7 +123,7 @@ basesPerGenotypePerChr <- function(gr, normChrSize=FALSE) {
 #' @author David Porubsky
 #' @export
 
-rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colors=NULL) {
+rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colors=NULL, title=NULL) {
   inv.sizes.ord <- order(width(gr), decreasing = FALSE)
   if (plotUniqueBases) {
     size.dist.df <- data.frame(x=1:length(inv.sizes.ord), size=width(gr)[inv.sizes.ord], uniqueBases=gr$TotalUniqueBases[inv.sizes.ord], ID=gr$ID[inv.sizes.ord], stringsAsFactors = FALSE)
@@ -147,9 +147,16 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
   if (violin) {
     plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE) +
            geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1) +
-           scale_fill_manual(values = col, name="")
+           scale_fill_manual(values = col, name="", guide='none') +
+           geom_text(aes(x = ID, y = med_size, label=med_size), color="white", vjust=-0.5) +
+           xlab("") 
   } else {
-    plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID))
+    plt <- ggplot(size.dist.df) + geom_point(aes(x=x, y=size, color=ID)) +
+           facet_grid(ID ~ .) +
+           geom_hline(aes(yintercept = med_size, group=ID), color="black") +
+           geom_text(aes(x = 1, y = med_size, label=med_size), color="black", vjust=-0.5) +
+           scale_color_manual(values = col, name="", guide='none') +
+           xlab("Size sorted inversions") 
     if (plotUniqueBases) {
       plt <- plt + geom_point(aes(x=x, y=uniqueBases), color='gray')
     }
@@ -158,11 +165,12 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
   plt <- plt + 
          scale_y_continuous(breaks=c(1000,10000,100000,1000000), labels = comma, trans = 'log10') +
          geom_hline(yintercept = c(10000, 1000000), linetype="dashed") +
-         scale_color_manual(values = col, name="") +
-         xlab("Size sorted inversions") + ylab("Inversion size (log10)") +
-         facet_grid(ID ~ .) +
-         geom_hline(aes(yintercept = med_size, group=ID), color="red") +
-         geom_text(aes(x = 1, y = med_size, label=med_size), color="red", vjust=-0.5)
+         ylab("Inversion size (log10)")
+  
+  if (!is.null(title) & is.character(title)) {
+    plt <- plt + ggtitle(title)
+  }
+  
   return(plt)
 }  
 
@@ -175,7 +183,7 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
 #' @author David Porubsky
 #' @export
 
-eventsPerChrSizeScatter <- function(gr, bsgenome) {
+eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL) {
   if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
     message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
   }
@@ -190,12 +198,20 @@ eventsPerChrSizeScatter <- function(gr, bsgenome) {
   
   plt.df <- as.data.frame(gr)
   seq.len <- seqlengths(bsgenome)[seqlevels(gr)]
-  data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
-
-  data.tab %>% ggplot() + geom_point(aes(x=ChrLen, y=counts)) + 
-  geom_text(data=data.tab, aes(x=ChrLen, y=counts, label=seqnames), vjust=-0.5, hjust=-0.1) +
-  scale_x_continuous(labels = comma) +  
-  xlab("Chromosome size (bp)")
+  if (!is.null(colBy) & is.character(colBy)) {
+    data.tab <- plt.df %>% group_by(.dots=c('seqnames', eval(colBy))) %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
+    data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts', color=eval(colBy))) + 
+    geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
+    scale_x_continuous(labels = comma) +
+    scale_color_manual(values = brewer.pal(n = 9, name = "Set1")) +
+    xlab("Chromosome size (bp)")
+  } else {
+    data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
+    data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts')) + 
+    geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
+    scale_x_continuous(labels = comma) +  
+    xlab("Chromosome size (bp)")
+  }
 }
 
 
@@ -743,4 +759,84 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
   
   final.plt <- cowplot::plot_grid(plotlist = plots, ncol = 1, rel_heights = heights)
   return(final.plt)
-} 
+}
+
+
+#' Plot BAM alignments around user defined genomic regions.
+#'
+#' @param bamfile Bamfile with aligned reads.
+#' @param regions A \code{\link{GRanges-class}} object with genomic regions to process.
+#' @param file A filename where final plot should be exported.
+#' @return A \code{ggplot} object.
+#' @importFrom dplyr group_by summarise
+#' @importFrom Rsamtools scanBamHeader ScanBamParam scanBamFlag
+#' @importFrom GenomicAlignments readGAlignments cigarRangesAlongReferenceSpace cigarToRleList
+#' @author David Porubsky
+#' @export
+#' 
+plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
+  ## Load BAM file
+  message("Reading BAM file: ", basename(bamfile))
+  data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('cigar', 'mapq', 'flag', 'qname'), flag=scanBamFlag(isDuplicate=FALSE)))
+  frags <- as(data.raw, 'GRanges')
+  
+  ## Go over user defined genomic location and plot BAM alignments at these regions
+  plots <- list()
+  for (i in seq_along(regions)) {
+    invDup.region <- regions[i]
+    regions.ID <- as.character(invDup.region)
+    message("Working on region: ", regions.ID)
+    ## Select fragments from a genomic region
+    frags.region <- IRanges::subsetByOverlaps(frags, invDup.region)
+    if (length(frags.region) > 0) {
+      ## Parse cigar string
+      cigar.iranges <- GenomicAlignments::cigarRangesAlongReferenceSpace(frags.region$cigar, flag = frags.region$flag, pos = start(frags.region))
+      cigarRle <- GenomicAlignments::cigarToRleList(frags.region$cigar)
+      ## Convert parsed cigar to GRanges
+      cigar.gr <- GenomicRanges::GRanges(seqnames=as.character(seqnames(frags.region[1])), ranges=do.call(c, cigar.iranges))
+      cigar.gr$cigar <- unlist(runValue(cigarRle))
+      #qname.id <- sapply(frags.region$qname, function(x) strsplit(x, "\\.")[[1]][3])
+      cigar.gr$qname <- factor(rep(frags.region$qname, lengths(cigar.iranges)), levels = frags.region$qname)
+      
+      ## Restrict plotted region to the size of genomic regions of interest to right and left
+      lookup.region <- resizeRanges(invDup.region, times = 1, bsgenome = BSgenome.Hsapiens.UCSC.hg38)
+      cigar.gr <- IRanges::subsetByOverlaps(cigar.gr, lookup.region)
+      cigar.grl <- split(cigar.gr, cigar.gr$qname)
+      
+      ## Construct plot ##
+      ## Plot BAM alignements
+      cigar.gr.df <- as.data.frame(cigar.gr)
+      cigar.gr.df$level <- rep(1:length(unique(cigar.gr$qname)), lengths(cigar.grl))
+      level.offset <- max(cigar.gr.df$level) + 1.5
+      plt <- ggplot() + geom_rect(data=cigar.gr.df, aes(xmin=start, xmax=end, ymin=level, ymax=level+1, fill=cigar)) +
+        scale_fill_manual(values = brewer.pal(n = 9, name = 'Set1'), drop=FALSE) +
+        theme_bw() +
+        ylab("") +
+        xlab("Genomic Position (bp)") +
+        ggtitle(regions.ID)
+      ## Annotate read names
+      text.label <- cigar.gr.df %>% group_by(qname) %>% summarise(x=min(start), y=unique(level))
+      plt <- plt + geom_text(data=text.label, aes(x=x, y=y, label=qname), hjust=0, vjust=-0.5, inherit.aes = FALSE)
+      ## Plot min & max range as gray bar
+      max.region <- data.frame(start=min(c(start(cigar.gr), start(invDup.region))), 
+                               end=max(c(end(cigar.gr), end(invDup.region))), y=level.offset)
+      plt <- plt + geom_rect(data=max.region, aes(xmin=start, xmax=end, ymin=y+0.25, ymax=y+0.75), fill='gray', inherit.aes = FALSE)
+      ## Plot region of interest as black bar
+      invDup.region.df <- as.data.frame(invDup.region)
+      invDup.region.df$y <- level.offset
+      plt <- plt + geom_rect(data=invDup.region.df, aes(xmin=start, xmax=end, ymin=y, ymax=y+1), fill='black', inherit.aes = FALSE)
+      plots[[length(plots) + 1]] <- plt
+    } else {
+      message("    No fragments assembled for this region!!!")
+    }
+  }
+  if (!is.null(file)) {
+    ## Export final plots in PDF
+    message("Printing to PDF ...")
+    grDevices::pdf(file, width=10, height=4)
+    bquiet = lapply(plots, print)
+    d <- grDevices::dev.off()
+  }
+  return(plots)
+  message("DONE!!!")
+}
