@@ -4,7 +4,7 @@
 \alias{eventsPerChrSizeScatter}
 \title{Plots scatter of event counts to chromosome size}
 \usage{
-eventsPerChrSizeScatter(gr, bsgenome)
+eventsPerChrSizeScatter(gr, bsgenome, colBy = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}
