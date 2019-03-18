@@ -94,9 +94,9 @@ getDisjointOverlapsWeighted <- function(gr, percTh = 50) {
     subject.width <- width(gr.disjoin[subjectHits(hits)]) #Non-overlapping ranges corresponding to the original ranges
     perc.overlap <- (subject.width / query.width) * 100
     ## Remove overlaps below percTh
-    mask <- perc.overlap >= percTh
-    perc.overlap <- perc.overlap[mask]
-    hits <- hits[mask,]
+    #mask <- perc.overlap >= percTh
+    #perc.overlap <- perc.overlap[mask]
+    #hits <- hits[mask,]
     
     if (length(hits) > 0) {
       ## Prepare ranges for % overlap filtering
@@ -117,6 +117,15 @@ getDisjointOverlapsWeighted <- function(gr, percTh = 50) {
       gr.filt.grl <- GenomicRanges::split(gr.filt, gr.filt$group)
       gr.filt.grl <- endoapply(gr.filt.grl, recalcPercOverlap)
       new.gr <- unlist(gr.filt.grl, use.names = FALSE)
+      ## Set groups with more than one range in a group to zero for overlap recalculation
+      to.recalculate <- new.gr[new.gr$perc.overlap < percTh]
+      if (length(to.recalculate) > 1 & length(new.gr) > length(to.recalculate)) {
+        group.to.recalculate <- as.numeric(names(which(table(to.recalculate$group) > 1)))
+        if (length(group.to.recalculate) > 0) {
+          idx.to.recalculate <- to.recalculate$idx[to.recalculate$group %in% group.to.recalculate]
+          new.gr <- new.gr[!new.gr$idx %in% idx.to.recalculate]
+        }  
+      }  
       ## Set ranges with % overlap less then percTh to zero
       #new.gr$perc.overlap[new.gr$perc.overlap < percTh] <- 0
       ## Set subgroup based on required percTh
@@ -126,7 +135,7 @@ getDisjointOverlapsWeighted <- function(gr, percTh = 50) {
       }
     } else {
       new.gr <- process.gr
-      new.gr$group <- seq(max(gr$group), (max(gr$group) + length(new.gr)) - 1)
+      new.gr$group <- seq(max(gr$group) + 1, (max(gr$group) + length(new.gr)))
       new.gr$sub.group <- paste0(new.gr$group,".", 1)
     } 
     ## Assign processed ranges to initial ranges
@@ -153,3 +162,4 @@ recalcPercOverlap <- function(gr) {
   }  
   return(gr)
 }
+
