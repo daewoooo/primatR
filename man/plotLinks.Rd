@@ -4,10 +4,15 @@
 \alias{plotLinks}
 \title{Plot significant connections between read pairs}
 \usage{
-plotLinks(links = NULL)
+plotLinks(links = NULL, chromosomes = NULL, index = NULL,
+  bsgenome = NULL)
 }
 \arguments{
 \item{links}{A \code{\link{GRanges-class}} object with stored links between read pairs.}
+
+\item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
+
+\item{bsgenome}{A reference genome to get lengths of standard chromosomes (1-22 adn X).}
 }
 \description{
 This function takes condidate filtered links exported from function 'processReadLinks'

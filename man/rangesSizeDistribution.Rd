@@ -15,6 +15,8 @@ rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE,
 \item{violin}{Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.}
 
 \item{colors}{A user defined set of colors used for plotting.}
+
+\item{title}{A user defined title of the plot.}
 }
 \value{
 A \code{ggplot} object.
