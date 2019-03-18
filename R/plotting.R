@@ -119,6 +119,7 @@ basesPerGenotypePerChr <- function(gr, normChrSize=FALSE) {
 #' @param plotUniqueBases Set to \code{TRUE} if you want to plot size of unique bases per range.
 #' @param violin Set to \code{TRUE} if you want plot violo_plot instead of dot_plot.
 #' @param colors A user defined set of colors used for plotting.
+#' @param title A user defined title of the plot.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
@@ -183,7 +184,7 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
 #' @author David Porubsky
 #' @export
 
-eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL) {
+eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL) {
   if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
     message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
   }
@@ -200,18 +201,23 @@ eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL) {
   seq.len <- seqlengths(bsgenome)[seqlevels(gr)]
   if (!is.null(colBy) & is.character(colBy)) {
     data.tab <- plt.df %>% group_by(.dots=c('seqnames', eval(colBy))) %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
-    data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts', color=eval(colBy))) + 
+    plt <- data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts', color=eval(colBy))) + 
     geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
     scale_x_continuous(labels = comma) +
     scale_color_manual(values = brewer.pal(n = 9, name = "Set1")) +
     xlab("Chromosome size (bp)")
   } else {
     data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
-    data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts')) + 
+    plt <- data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts')) + 
     geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
     scale_x_continuous(labels = comma) +  
     xlab("Chromosome size (bp)")
   }
+  
+  if (!is.null(facetID)) {
+    plt <- plt + facet_grid(eval(parse(text = facetID)) ~ ., scales = 'free')
+  }  
+  return(plt)
 }
 
 
@@ -768,7 +774,7 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
 #' @param regions A \code{\link{GRanges-class}} object with genomic regions to process.
 #' @param file A filename where final plot should be exported.
 #' @return A \code{ggplot} object.
-#' @importFrom dplyr group_by summarise
+#' @importFrom dplyr group_by summarise "%>%"
 #' @importFrom Rsamtools scanBamHeader ScanBamParam scanBamFlag
 #' @importFrom GenomicAlignments readGAlignments cigarRangesAlongReferenceSpace cigarToRleList
 #' @author David Porubsky
@@ -785,7 +791,7 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
   for (i in seq_along(regions)) {
     invDup.region <- regions[i]
     regions.ID <- as.character(invDup.region)
-    message("Working on region: ", regions.ID)
+    message("    Working on region: ", regions.ID)
     ## Select fragments from a genomic region
     frags.region <- IRanges::subsetByOverlaps(frags, invDup.region)
     if (length(frags.region) > 0) {
@@ -793,13 +799,13 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
       cigar.iranges <- GenomicAlignments::cigarRangesAlongReferenceSpace(frags.region$cigar, flag = frags.region$flag, pos = start(frags.region))
       cigarRle <- GenomicAlignments::cigarToRleList(frags.region$cigar)
       ## Convert parsed cigar to GRanges
-      cigar.gr <- GenomicRanges::GRanges(seqnames=as.character(seqnames(frags.region[1])), ranges=do.call(c, cigar.iranges))
+      cigar.gr <- GenomicRanges::GRanges(seqnames=as.character(seqnames(frags.region[1])), ranges=unlist(cigar.iranges))
       cigar.gr$cigar <- unlist(runValue(cigarRle))
       #qname.id <- sapply(frags.region$qname, function(x) strsplit(x, "\\.")[[1]][3])
-      cigar.gr$qname <- factor(rep(frags.region$qname, lengths(cigar.iranges)), levels = frags.region$qname)
+      cigar.gr$qname <- factor(rep(frags.region$qname, lengths(cigar.iranges)), levels = unique(frags.region$qname))
       
       ## Restrict plotted region to the size of genomic regions of interest to right and left
-      lookup.region <- resizeRanges(invDup.region, times = 1, bsgenome = BSgenome.Hsapiens.UCSC.hg38)
+      lookup.region <- primatR::resizeRanges(invDup.region, times = 1, bsgenome = BSgenome.Hsapiens.UCSC.hg38)
       cigar.gr <- IRanges::subsetByOverlaps(cigar.gr, lookup.region)
       cigar.grl <- split(cigar.gr, cigar.gr$qname)
       
@@ -815,7 +821,8 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
         xlab("Genomic Position (bp)") +
         ggtitle(regions.ID)
       ## Annotate read names
-      text.label <- cigar.gr.df %>% group_by(qname) %>% summarise(x=min(start), y=unique(level))
+      text.label <- cigar.gr.df %>% group_by(qname) %>% summarise(x=min(start))
+      text.label$y <- unique(cigar.gr.df$level)
       plt <- plt + geom_text(data=text.label, aes(x=x, y=y, label=qname), hjust=0, vjust=-0.5, inherit.aes = FALSE)
       ## Plot min & max range as gray bar
       max.region <- data.frame(start=min(c(start(cigar.gr), start(invDup.region))), 
@@ -839,4 +846,33 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
   }
   return(plots)
   message("DONE!!!")
+}
+
+
+#' Prepare NJ tree based on data matrix
+#'
+#' @param data.matrix ...
+#' @param boot.iter ...
+#' @return A \code{ggplot} object.
+#' @importFrom ape nj boot.phylo
+#' @author David Porubsky
+#' @export
+#'
+plotDistanceTree <- function(data.matrix, boot.iter=10000) {
+  ## Construct a tree
+  tree <- ape::nj(X = dist(data.matrix))
+  if (boot.iter > 0) {
+    boot <- ape::boot.phylo(tree, data.matrix, function(x) nj(dist(x)), B = boot.iter)
+    boot <- (boot/boot.iter)*100
+    tree$node.label <- boot
+  }
+  offset <- max(tree$edge.length) + 100
+  ## Plot phylogenetic tree
+  plt <- ggplot(tree) + 
+    geom_tree() + 
+    theme_tree2() + 
+    geom_tiplab() + 
+    geom_nodelab(hjust = -0.1) +
+    ggplot2::xlim(0, offset)
+  return(plt)
 }
