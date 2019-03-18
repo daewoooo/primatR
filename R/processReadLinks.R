@@ -149,8 +149,10 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
   }  
 
   ## Export final data objects
-  intra.links <- do.call(c, intra.links.list)
-  inter.links <- do.call(c, inter.links.list)
+  #intra.links <- do.call(c, intra.links.list)
+  #inter.links <- do.call(c, inter.links.list)
+  intra.links <- unlist(intra.links.list)
+  inter.links <- unlist(inter.links.list)
   final.links <- unlist(final.links, use.names = FALSE)
   missed.bams <- assessed.bams[!assessed.bams %in% unique(final.links$bam.name)]
   
@@ -171,7 +173,7 @@ processReadLinks <- function(gr.links, min.reads = 10, chromosomes = NULL, bsgen
 #' @importFrom scales comma
 #' @author David Porubsky
 #' @export
-plotLinks <- function(links=NULL) {
+plotLinks <- function(links=NULL, chromosomes=NULL, index=NULL, bsgenome=NULL) {
   links.intra <- links$intra.links
   links.inter <- links$inter.links
   
@@ -232,6 +234,11 @@ plotLinks <- function(links=NULL) {
   plt <- plt + annotate(geom="text", x=23, y=250000000-40000000, label=paste0("Only inter-chromosomal breaks: ", only.inter, "\n"), color="black", hjust=1)
   plt <- plt + annotate(geom="text", x=23, y=250000000-50000000, label=paste0("Both intra & inter breaks: ", inter.and.intra.breaks, "\n"), color="black", hjust=1)
   plt <- plt + annotate(geom="text", x=23, y=250000000-60000000, label=paste0("Multi-location inter-chromosomal breaks: ", multi.inter, "\n"), color="black", hjust=1)
+  
+  ## Add plot title
+  if (!is.null(index) & nchar(index) > 0) {
+    plt <- plt + ggtitle(index)
+  }
   
   return(plt)
 }
