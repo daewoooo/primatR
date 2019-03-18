@@ -73,7 +73,7 @@ coveragePerRegion <- function(grl, ID="", coverage=TRUE) {
       strand(cov.plus.ranges) <- "+"
       strand(cov.minus.ranges) <- "-"
     
-      cov.ranges <- c(cov.plus.ranges, cov.minus.ranges)
+      cov.ranges <- sort(c(cov.plus.ranges, cov.minus.ranges), ignore.strand=TRUE)
       cov.ranges$ID <- unique(gr$ID)
       cov.ranges$region.ID <- unique(gr$region.ID)
     } else {
@@ -81,7 +81,7 @@ coveragePerRegion <- function(grl, ID="", coverage=TRUE) {
       minus.ranges <- gr[strand(gr) == "-"]
       plus.ranges$level <- disjointBins(plus.ranges)
       minus.ranges$level <- -disjointBins(minus.ranges)
-      cov.ranges <- c(plus.ranges, minus.ranges)
+      cov.ranges <- sort(c(plus.ranges, minus.ranges), ignore.strand=TRUE)
     }
     region.covs[[i]] <-  cov.ranges
   }
@@ -144,3 +144,21 @@ countUniqueReadIDs <- function(readIDs) {
   unique.ids <- unique(read.id)
   return(length(unique.ids))
 } 
+
+
+#' Collapses consecutive set of ranges with the same value
+#' 
+#' @param gr A \code{\link{GRanges}} object.
+#' @param id.field A field column used to collapse ranges with the same value.
+#' 
+#' @author David Porubsky
+#' @export
+#' 
+collapseBins <- function(gr, id.field=0) {
+  ind.last <- cumsum(runLength(Rle(mcols(gr)[,id.field]))) ##get indices of last range in a consecutive(RLE) run of the same value
+  ind.first <- c(1,cumsum(runLength(Rle(mcols(gr)[,id.field]))) + 1) ##get indices of first range in a consecutive(RLE) run of the same value
+  ind.first <- ind.first[-length(ind.first)]  ##erase last index from first range indices
+  collapsed.gr <- GenomicRanges::GRanges(seqnames=seqnames(gr[ind.first]), ranges=IRanges(start=start(gr[ind.first]), end=end(gr[ind.last])), mcols=mcols(gr[ind.first]))
+  names(mcols(collapsed.gr)) <- names(mcols(gr[ind.first]))
+  return(collapsed.gr)
+}
