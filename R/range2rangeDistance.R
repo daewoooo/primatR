@@ -9,7 +9,7 @@
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
-
+#' 
 range2rangeDistance <- function(gr, userTrack, allow.overlap=FALSE) {
   ## Export start and end position as a separate GRanges objects
   gr.starts <- GRanges(seqnames=seqnames(gr), ranges=IRanges(start=start(gr), end=start(gr)+1))
@@ -38,7 +38,7 @@ range2rangeDistance <- function(gr, userTrack, allow.overlap=FALSE) {
   ## Get distance to the nearest SD
   left.distances <- distance(nearest.left, gr.starts)
   right.distances <- distance(nearest.right, gr.ends)
-  ## Set distances for NA values to be less than zero
+  ## Set distances for NA values to be a high number
   left.distances[left.na] <- -1
   right.distances[right.na] <- -1
   
@@ -53,4 +53,20 @@ range2rangeDistance <- function(gr, userTrack, allow.overlap=FALSE) {
   gr$rightDist <- right.distances
   
   return(gr)
+}
+
+#' Function to calculate minimal distances to user defined ranges
+#'
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @param userTrack A \code{\link{GRanges-class}} object.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
+#' @export
+#' 
+getMinDist <- function(gr, userTrack) {
+  distances <- range2rangeDistance(gr=gr, userTrack=userTrack, allow.overlap = TRUE)
+  distances$leftDist[distances$leftDist == -1] <- distances$rightDist[distances$leftDist == -1]
+  distances$rightDist[distances$rightDist == -1] <- distances$leftDist[distances$rightDist == -1]
+  min.distances <- pmin(distances$leftDist, distances$rightDist)
+  return(min.distances)
 }
