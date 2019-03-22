@@ -180,11 +180,14 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
+#' @param colBy A metacolumn name to be used to color data by.
+#' @param facetID A metacolumn name to be used to split data in sub-plots.
+#' @param lm Set to TRUE if regression line should be added to the plot.
 #' @return A \code{ggplot} object.
 #' @author David Porubsky
 #' @export
 
-eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL) {
+eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL, lm=FALSE) {
   if (any(is.na(seqlengths(gr))) & is.null(bsgenome)) {
     message("Chromosome lengths are missing. Please submit BSgenome object of the genome you want to plot.")
   }
@@ -199,23 +202,46 @@ eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL) {
   
   plt.df <- as.data.frame(gr)
   seq.len <- seqlengths(bsgenome)[seqlevels(gr)]
-  if (!is.null(colBy) & is.character(colBy)) {
-    data.tab <- plt.df %>% group_by(.dots=c('seqnames', eval(colBy))) %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
-    plt <- data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts', color=eval(colBy))) + 
-    geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
-    scale_x_continuous(labels = comma) +
-    scale_color_manual(values = brewer.pal(n = 9, name = "Set1")) +
-    xlab("Chromosome size (bp)")
-  } else {
-    data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
-    plt <- data.tab %>% ggplot() + geom_point(aes_string(x='ChrLen', y='counts')) + 
-    geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
-    scale_x_continuous(labels = comma) +  
-    xlab("Chromosome size (bp)")
-  }
+  data.tab <- plt.df %>% group_by(.dots='seqnames') %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
   
+  if (lm) {
+    colBy=NULL
+    facetID=NULL
+    message("Parameters 'colBy' and 'facetID' cannot be used when 'lm=TRUE'")
+    l.mod = lm(counts ~ ChrLen, data=data.tab)
+    suppressWarnings( conf.level <- predict(l.mod, interval="prediction", level = 0.95) )
+    data.tab <- data.tab %>% mutate(resid=abs(resid(l.mod)), fitted=fitted(l.mod))
+    data.tab <- cbind(data.tab, conf.level)
+    
+    r.sq <- paste0('R^2=', round(summary(l.mod)$r.squared, 3))
+    
+    plt <- data.tab %>% ggplot() + geom_line(aes_string(x='ChrLen', y='fitted')) +
+      geom_line(aes_string(x='ChrLen', y='lwr'), color = "red", linetype = "dashed") +
+      geom_line(aes_string(x='ChrLen', y='upr'), color = "red", linetype = "dashed") +
+      geom_point(aes_string(x='ChrLen', y='counts', color='resid')) +
+      geom_text(aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
+      geom_text(data = r.sq.pos, aes(x=-Inf, y=Inf, label=r.sq), inherit.aes = F, hjust=-0.5, vjust=1) +
+      scale_colour_gradient(low="blue", high="red") +
+      scale_x_continuous(labels = comma) +
+      labs(x="Chromosome size (bp)", y='counts', colour="Residuals")
+  } else if (!is.null(colBy) & is.character(colBy)) {
+    data.tab <- plt.df %>% group_by(.dots=c('seqnames', eval(colBy))) %>% summarize(counts = n()) %>% mutate(ChrLen=seq.len[seqnames])
+    plt <- data.tab %>% ggplot(aes_string(x='ChrLen', y='counts', color=eval(colBy))) + 
+      geom_point() + 
+      geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
+      scale_x_continuous(labels = comma) +
+      scale_color_manual(values = brewer.pal(n = 9, name = "Set1")) +
+      xlab("Chromosome size (bp)")
+  } else {
+    plt <- data.tab %>% ggplot(aes_string(x='ChrLen', y='counts')) + 
+      geom_point() + 
+      geom_text(data=data.tab, aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
+      scale_x_continuous(labels = comma) +  
+      xlab("Chromosome size (bp)")
+  }
+  ## Split the plot by facetID
   if (!is.null(facetID)) {
-    plt <- plt + facet_grid(eval(parse(text = facetID)) ~ ., scales = 'free')
+    plt <- plt + facet_grid(eval(parse(text = facetID)) ~ ., scales = 'free') #+ geom_smooth(method = "lm", se = FALSE)
   }  
   return(plt)
 }
