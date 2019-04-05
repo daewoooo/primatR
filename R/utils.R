@@ -188,3 +188,19 @@ removeSDflanks <- function(gr=NULL, sd.track=NULL) {
   mcols(new.gr) <- mcols(gr)
   return(new.gr)
 }
+
+
+#' Bind consecutive pairs values in vector into a matrix with two columns
+#' 
+#' @param v A \code{\link{vector}} object.
+#' 
+#' @author David Porubsky
+#' @export
+#'
+reformat <- function(v) {
+  lines <- list()
+  for (i in 1:(length(v)-1)) {
+    lines[[length(lines)+1]] <- c(v[i], v[i+1])
+  }
+  return(do.call(rbind, lines))
+}
