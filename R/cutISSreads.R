@@ -23,12 +23,13 @@ cutISSreads <- function(bamfile=NULL, out.format='fasta', filename=NULL) {
   frags <- as(data.raw, 'GRanges')
   ## Split aligned fragments by read name
   frags.grl <- split(frags, frags$qname)
+  n.frags <- length(frags.grl)
   
   ## Go over every CCS iso-seq read
   counter <- 1000
   for (i in seq_along(frags.grl)) {
     if (i == counter) {
-      message("    Processed ", i,  " fragments ...")
+      message("    Processed [", i, "/", n.frags, "] fragments ...")
       counter <- counter + 1000
     }
     read.frags <- frags.grl[[i]]
