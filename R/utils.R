@@ -12,6 +12,21 @@ insertchr <- function(gr) {
   return(gr)
 }
 
+#' Transform genomic coordinates
+#'
+#' Add two columns with transformed genomic coordinates to the \code{\link{GRanges-class}} object. This is useful for making genomewide plots.
+#'
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @return The input \code{\link{GRanges-class}} with two additional metadata columns 'start.genome' and 'end.genome'.
+transCoord <- function(gr) {
+  cum.seqlengths <- cumsum(as.numeric(seqlengths(gr)))
+  cum.seqlengths.0 <- c(0,cum.seqlengths[-length(cum.seqlengths)])
+  names(cum.seqlengths.0) <- GenomeInfoDb::seqlevels(gr)
+  gr$start.genome <- start(gr) + cum.seqlengths.0[as.character(seqnames(gr))]
+  gr$end.genome <- end(gr) + cum.seqlengths.0[as.character(seqnames(gr))]
+  return(gr)
+}
+
 ## Helper function
 as.object <- function(x) {
   return(eval(parse(text=x)))
@@ -127,7 +142,7 @@ makeBins <- function(bsgenome, chromosomes, binsize=100000, stepsize=binsize/2) 
 #' @export
 collapseOverlaps <- function(gr) {
   reduced.gr <- GenomicRanges::reduce(gr)
-  if (ncol(mcols(gr))>0) {
+  if (ncol(mcols(gr)) > 0) {
     mcols(reduced.gr) <- unique(mcols(gr)) #[length(reduced.gr),]
   }
   return(reduced.gr)
@@ -203,4 +218,19 @@ reformat <- function(v) {
     lines[[length(lines)+1]] <- c(v[i], v[i+1])
   }
   return(do.call(rbind, lines))
+}
+
+
+#' Expand Genomic Ranges into a set of region boundaries
+#' 
+#' @param gr A \code{\link{GRanges}} object.
+#' 
+#' @author David Porubsky
+#' @export
+#'
+getRegionBoundaries <- function(gr) {
+  starts.gr <- GRanges(seqnames = seqnames(gr), ranges = IRanges(start=start(gr), end=start(gr)))
+  ends.gr <- GRanges(seqnames = seqnames(gr), ranges = IRanges(start=end(gr), end=end(gr)))
+  all.pos.gr <- sort(c(starts.gr, ends.gr))
+  return(all.pos.gr)
 }
