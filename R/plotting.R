@@ -214,13 +214,14 @@ eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL, lm=F
     data.tab <- cbind(data.tab, conf.level)
     
     r.sq <- paste0('R^2=', round(summary(l.mod)$r.squared, 3))
+    r.sq.df <- as.data.frame(r.sq)
     
     plt <- data.tab %>% ggplot() + geom_line(aes_string(x='ChrLen', y='fitted')) +
       geom_line(aes_string(x='ChrLen', y='lwr'), color = "red", linetype = "dashed") +
       geom_line(aes_string(x='ChrLen', y='upr'), color = "red", linetype = "dashed") +
       geom_point(aes_string(x='ChrLen', y='counts', color='resid')) +
       geom_text(aes_string(x='ChrLen', y='counts', label='seqnames'), vjust=-0.5, hjust=-0.1) +
-      geom_text(data = r.sq.pos, aes(x=-Inf, y=Inf, label=r.sq), inherit.aes = F, hjust=-0.5, vjust=1) +
+      geom_text(data = r.sq.df, aes(x=-Inf, y=Inf, label=r.sq), inherit.aes = F, hjust=-0.5, vjust=1) +
       scale_colour_gradient(low="blue", high="red") +
       scale_x_continuous(labels = comma) +
       labs(x="Chromosome size (bp)", y='counts', colour="Residuals")

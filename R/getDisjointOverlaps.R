@@ -131,7 +131,9 @@ getDisjointOverlapsWeighted <- function(gr, percTh = 50) {
       ## Set subgroup based on required percTh
       new.gr$sub.group <- paste0(new.gr$group,".", 1)
       if (any(new.gr$perc.overlap < percTh)) {
-        new.gr$sub.group[which(new.gr$perc.overlap < percTh)] <- paste0(new.gr$group[which(new.gr$perc.overlap < percTh)],".", 2)
+        n <- length(new.gr[new.gr$perc.overlap < percTh])
+        sub.group.idx <- seq(from = 2, length.out = n)
+        new.gr$sub.group[which(new.gr$perc.overlap < percTh)] <- paste0(new.gr$group[which(new.gr$perc.overlap < percTh)],".",  sub.group.idx)
       }
     } else {
       new.gr <- process.gr
