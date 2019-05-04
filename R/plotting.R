@@ -478,10 +478,13 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
 #' @param nucmer.coords A coordinates from nucmer output. [RUN: nucmer --coords ...] 
 #' @param genome.coords Set to \code{TRUE} if you want to work in genomic coordinates.
 #' @param highlight.pos A set of postions to be highlighted on the x-axis.
+#' @param title A character string to use as a title for the plot.
+#' @param sd.track A segmental dulication track to be highlight at the plot.
+#' @param shape A shape used to plot aligned sequences: Either 'segm' or 'point'.
 #' @return A \code{\link[ggplot2:ggplot]{ggplot}} object.
 #' @author David Porubsky
 #' @export
-plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highlight.pos = NULL, title = NULL, sd.track = NULL) {
+plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highlight.pos = NULL, title = NULL, sd.track = NULL, shape='segm') {
   
   ## Helper function
   remapCoord <- function(x = NULL, new.range = NULL) {
@@ -521,14 +524,23 @@ plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highligh
   forw.mask <- (coords.df$s1.start < coords.df$s1.end) & (coords.df$s2.start < coords.df$s2.end)
   coords.df$dir[forw.mask] <- 'forw'
   
-  ## Plot segments
-  plt <- ggplot2::ggplot(coords.df, aes(x=s1.start,xend=s1.end,y=s2.start,yend=s2.end, color=dir)) + 
-    geom_segment() +
+  if (shape == 'segm') {
+    ## Plot alignments
+    plt <- ggplot2::ggplot(coords.df, aes(x=s1.start,xend=s1.end,y=s2.start,yend=s2.end, color=dir)) + 
+      geom_segment()
+  } else if (shape == 'point') {
+    coords.df$s1.midpoint <- coords.df$s1.start + ((coords.df$s1.end - coords.df$s1.start)/2)
+    coords.df$s2.midpoint <- coords.df$s2.start + ((coords.df$s2.end - coords.df$s2.start)/2)
+    plt <- ggplot2::ggplot(coords.df, aes(x=s1.midpoint, y=s2.midpoint, color=dir)) + 
+      geom_point()
+  }  
+  plt <- plt +  
     xlab(unique(coords.df$s1.id)) +
     ylab(unique(coords.df$s2.id)) +
     theme_bw() + 
     theme(aspect.ratio=1) + #force x and y axis to have the same proportion
     scale_color_manual(values = c('chartreuse4', 'darkgoldenrod2'))
+    
   ## Highlight user defined postion on x axis
   if (!is.null(highlight.pos)) {
     plt <- plt + geom_vline(xintercept = highlight.pos, color='black', linetype = 2)
@@ -551,7 +563,6 @@ plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highligh
   if (!is.null(title)) {
     plt <- plt + ggtitle(title)
   }
-  
   return(plt)
 }
 

@@ -5,12 +5,19 @@
 \title{Plot 'dotplot' of two sequences.}
 \usage{
 plotNucmerCoords(nucmer.coords = NULL, genome.coord = TRUE,
-  highlight.pos = NULL, title = NULL, sd.track = NULL)
+  highlight.pos = NULL, title = NULL, sd.track = NULL,
+  shape = "segm")
 }
 \arguments{
 \item{nucmer.coords}{A coordinates from nucmer output. [RUN: nucmer --coords ...]}
 
 \item{highlight.pos}{A set of postions to be highlighted on the x-axis.}
+
+\item{title}{A character string to use as a title for the plot.}
+
+\item{sd.track}{A segmental dulication track to be highlight at the plot.}
+
+\item{shape}{A shape used to plot aligned sequences: Either 'segm' or 'point'.}
 
 \item{genome.coords}{Set to \code{TRUE} if you want to work in genomic coordinates.}
 }
