@@ -10,7 +10,7 @@
 #' @param filterAltAlign Set to \code{TRUE} if you want to filter out reads with alternative mapping location.
 #' @importFrom Rsamtools indexBam scanBamHeader ScanBamParam scanBamFlag testPairedEndBam
 #' @importFrom GenomicAlignments readGAlignmentPairs readGAlignments first last
-#' @author Aaron Taudt, David Porubsky, Ashley Sanders
+#' @author David Porubsky
 #' @export
 
 bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=FALSE, min.mapq=10, filterAltAlign=TRUE) {
@@ -25,7 +25,7 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
   }
   
   ## Check if bam is truly paired ended in case pairedEndReads set to TRUE
-  is.Paired <- Rsamtools::testPairedEndBam(file = bamfile, index = bamindex)
+  suppressMessages( is.Paired <- Rsamtools::testPairedEndBam(file = bamfile, index = bamindex) )
   if (pairedEndReads) {
     if (!is.Paired) {
       warning("You are trying to process single-ended BAM as paired-ended, Please set proper BAM protocol!!!")
@@ -36,12 +36,20 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
     }  
   }
   
-  ## read in reads data
-  if (pairedEndReads) {
-    suppressWarnings( data.raw <- GenomicAlignments::readGAlignmentPairs(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", which=range(region), what=c('mapq','flag'))) )	
+  ## Read in the BAM file
+  if (class(region) == "GRanges") {
+    if (pairedEndReads) {
+      suppressWarnings( data.raw <- GenomicAlignments::readGAlignmentPairs(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", which=range(region), what=c('mapq','flag'))) )	
+    } else {
+      suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", which=range(region), what='mapq', flag=scanBamFlag(isDuplicate=FALSE))) )
+    } 
   } else {
-    suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", which=range(region), what='mapq', flag=scanBamFlag(isDuplicate=F))) )
-  } 
+    if (pairedEndReads) {
+      suppressWarnings( data.raw <- GenomicAlignments::readGAlignmentPairs(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", what=c('mapq','flag'))) )	
+    } else {
+      suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, index=bamindex, param=Rsamtools::ScanBamParam(tag="XA", what='mapq', flag=scanBamFlag(isDuplicate=FALSE))) )
+    }    
+  }
   
   ## Second mate of the pair will inherit directionality from the first mate of the pair
   if (pairedEndReads) {
@@ -75,7 +83,9 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
     data <- data[is.na(mcols(data)$XA)]
   }    
   
-  data <- GenomeInfoDb::keepSeqlevels(data, seqlevels(region), pruning.mode="coarse")
+  if (class(region) == "GRanges") {
+    data <- GenomeInfoDb::keepSeqlevels(data, seqlevels(region), pruning.mode="coarse")
+  }
 
   return(data)
 }

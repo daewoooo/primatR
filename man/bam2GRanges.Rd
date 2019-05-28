@@ -24,5 +24,5 @@ bam2GRanges(bamfile, bamindex = bamfile, region = NULL,
 Import aligned reads from a BAM file into a \code{\link{GRanges}} object.
 }
 \author{
-Aaron Taudt, David Porubsky, Ashley Sanders
+David Porubsky
 }
