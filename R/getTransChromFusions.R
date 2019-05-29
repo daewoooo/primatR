@@ -16,6 +16,7 @@
 #' 
 getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE, min.links=5) {
   message("Reading BAM file: ", basename(bamfile))
+  
   ## Load BAM file
   suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('mapq','qname'), flag=scanBamFlag(isDuplicate=FALSE))) )
   frags <- as(data.raw, 'GRanges')
@@ -31,6 +32,9 @@ getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE,
     }
     frags <- frags[mcols(frags)$mapq >= min.mapq]
   }
+  
+  message("Searching for trans-chromosomal links")
+  
   ## Split aligned fragments by read name
   frags.grl <- split(frags, frags$qname)
   pos.per.frag <- lengths(frags.grl)
