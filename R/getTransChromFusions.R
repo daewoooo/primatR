@@ -57,14 +57,14 @@ getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE,
   for (i in seq_along(frags.grl)) {
     frag <- frags.grl[[i]]
     ## Skip read that map to more than 2 genomic locations
-    if (length(runValue(seqnames(frag))) > 2) {
+    if (length(S4Vectors::runValue(seqnames(frag))) > 2) {
       next
     }
     ## Skip read that map to more than 2 genomic locations within a chromosome
-    if (any(runLength(seqnames(frag)) > 1)) {
+    if (any(S4Vectors::runLength(seqnames(frag)) > 1)) {
       next
     }
-    hits <- findOverlaps(frag, regions.gr)
+    hits <- IRanges::findOverlaps(frag, regions.gr)
     region.idx <- sort(unique(subjectHits(hits)))
     #message("iter:",i , " ", length(region.idx))
     ## Increment score for a given pair of regions (indices)
