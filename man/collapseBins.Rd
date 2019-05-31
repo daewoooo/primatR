@@ -4,12 +4,14 @@
 \alias{collapseBins}
 \title{Collapses consecutive set of ranges with the same value}
 \usage{
-collapseBins(gr, id.field = 0)
+collapseBins(gr, id.field = 0, measure.field = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges}} object.}
 
 \item{id.field}{A field column used to collapse ranges with the same value.}
+
+\item{measure.field}{A field column that contains measured value to be sum up.}
 }
 \description{
 Collapses consecutive set of ranges with the same value
