@@ -191,32 +191,6 @@ collapseBins <- function(gr, id.field=0, measure.field=NULL) {
   return(collapsed.gr)
 }
 
-#' Remove regions overlaping with segmental duplications from the user defined genomic ranges.
-#' 
-#' @param gr A \code{\link{GRanges}} object.
-#' @param sd.track A \code{\link{GRanges}} object containing locations of segmental duplications.
-#' 
-#' @author David Porubsky
-#' @export
-#' 
-removeSDflanks <- function(gr=NULL, sd.track=NULL) {
-  ## Find regions overlapping with SD region
-  hits <- findOverlaps(sd.track, gr)
-  to.process <- gr[unique(subjectHits(hits))]
-  ## Get disjoined ranges
-  disjoint.regions <- disjoin(sort(c(sd.track[,0], gr[,0])))
-  ## Remove ranges overlapping with SD
-  disjoint.regions <- subsetByOverlaps(disjoint.regions, sd.track, invert = TRUE)
-  ## Find regions overlapping with regions of interest
-  hits <- findOverlaps(disjoint.regions, gr)
-  disjoint.regions$ID <- subjectHits(hits)
-  new.gr <- collapseBins(disjoint.regions, id.field = 1)
-  ## Sort by original order
-  new.gr <- new.gr[order(new.gr$ID)]
-  mcols(new.gr) <- mcols(gr)
-  return(new.gr)
-}
-
 
 #' Bind consecutive pairs values in vector into a matrix with two columns
 #' 
@@ -240,7 +214,7 @@ reformat <- function(v) {
 #' @author David Porubsky
 #' @export
 #'
-getRegionBoundaries <- function(gr) {
+getRegionBoundaries <- function(gr, sort=TRUE) {
   ## Extract start and end position of each genomic range
   starts.gr <- GRanges(seqnames = seqnames(gr), ranges = IRanges(start=start(gr), end=start(gr)))
   ends.gr <- GRanges(seqnames = seqnames(gr), ranges = IRanges(start=end(gr), end=end(gr)))
@@ -248,6 +222,13 @@ getRegionBoundaries <- function(gr) {
   starts.gr$region.ID <- as.character(gr)
   ends.gr$region.ID <- as.character(gr)
   ## Sort and export region boundaries
-  all.pos.gr <- sort(c(starts.gr, ends.gr), ignore.strand=TRUE)
+  if (sort) {
+    all.pos.gr <- sort(c(starts.gr, ends.gr), ignore.strand=TRUE)
+  } else {
+    starts.gr$ord <- 1:length(starts.gr)
+    ends.gr$ord <- 1:length(ends.gr)
+    all.pos.gr <- c(starts.gr, ends.gr)
+    all.pos.gr <- all.pos.gr[order(all.pos.gr$ord), 1]
+  }  
   return(all.pos.gr)
 }

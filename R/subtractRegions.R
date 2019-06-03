@@ -19,9 +19,15 @@ subtractRegions <- function(gr = NULL, remove.gr = NULL, mode = 'flanks') {
   ## Merge splitted unique ranges that belong to the same gr of interest
   unique.gr.collapse <- unique.gr[subjectHits(hits)]
   unique.gr.collapse$ID <- queryHits(hits)
+  ## Subtract only flanking regions overlapping with SDs
   if (mode == 'flanks') {
     unique.merged.gr <- collapseBins(unique.gr.collapse, id.field = 1)
     return(unique.merged.gr)
+  ## Report the single longest range non-overlapping with SDs 
+  } else if (mode == 'longest') {
+    unique.gr.collapse.grl <- split(unique.gr.collapse, unique.gr.collapse$ID)
+    unique.gr.collapse.grl <- endoapply(unique.gr.collapse.grl, function(x) x[which.max(width(x))])
+    return(unlist(unique.gr.collapse.grl, use.names = FALSE))
   } else {
     return(unique.gr.collapse)
   } 

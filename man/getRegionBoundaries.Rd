@@ -4,7 +4,7 @@
 \alias{getRegionBoundaries}
 \title{Expand Genomic Ranges into a set of region boundaries}
 \usage{
-getRegionBoundaries(gr)
+getRegionBoundaries(gr, sort = TRUE)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges}} object.}
