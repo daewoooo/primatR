@@ -18,7 +18,7 @@ getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE,
   message("Reading BAM file: ", basename(bamfile))
   
   ## Load BAM file
-  suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('mapq','qname'), flag=scanBamFlag(isDuplicate=FALSE))) )
+  suppressWarnings( data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('mapq','qname'), flag=Rsamtools::scanBamFlag(isDuplicate=FALSE))) )
   frags <- as(data.raw, 'GRanges')
   ## Keep only standard chromosomes
   if (standardChroms) {
@@ -53,6 +53,7 @@ getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE,
   regions.gr$idx <- 1:length(regions.gr)
   ## Create empty data matrix to store links
   links.m <- matrix(0L, nrow = length(regions.gr), ncol = length(regions.gr))
+  reads.l <- list()
   ## Process every read and record link indices
   for (i in seq_along(frags.grl)) {
     frag <- frags.grl[[i]]
@@ -69,14 +70,20 @@ getTransChromFusions <- function(bamfile=NULL, min.mapq=10, standardChroms=TRUE,
     #message("iter:",i , " ", length(region.idx))
     ## Increment score for a given pair of regions (indices)
     links.m[region.idx[1], region.idx[2]] <- links.m[region.idx[1], region.idx[2]] + 1
+    ## Store discordant reads
+    idx <- paste0(region.idx[1],"_", region.idx[2])
+    reads.l[[idx]] <- c(reads.l[[idx]], unique(frag$qname))
   }
   ## Get coordinates of candidate fusions with 5 and more supporting Iso-seq reads
   fusion.idx <- which(links.m >= min.links, arr.ind = TRUE)
-  scores <- diag(links.m[fusion.idx[,1], fusion.idx[,2]])
+  freq <- diag(links.m[fusion.idx[,1], fusion.idx[,2]])
+  read.ids <- apply(fusion.idx, 1, function(x) reads.l[[paste(x, collapse = "_")]])
+  read.ids <- sapply(read.ids, function(x) paste(x, collapse = ","))
   
   fusion.links <- regions.gr[fusion.idx[,1], 0]
   fusion.links$to.gr <- regions.gr[fusion.idx[,2], 0]
-  fusion.links$scores <- scores
+  fusion.links$freq <- freq
+  fusion.links$read.ids <- read.ids
   ## Export final results
   return(fusion.links)
 }  
