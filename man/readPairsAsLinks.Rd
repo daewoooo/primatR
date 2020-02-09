@@ -19,7 +19,7 @@ readPairsAsLinks(inputfolder = ".", min.mapq = 60, filt.flag = 3328,
 
 \item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
 
-\item{bsgenome}{A reference genome to get lengths of standard chromosomes (1-22 adn X).}
+\item{bsgenome}{A reference genome to get lengths of genomic sequences (eg. GRCh38).}
 
 \item{blacklist}{An \code{\link{GRanges-class}} object that contains regions to be filtered out.}
 }
