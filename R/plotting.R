@@ -309,14 +309,14 @@ genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', color
   }
   plt <- plt + 
     coord_flip() + 
-    facet_grid(seqnames ~ ., switch = 'y') +
+    facet_grid(seqnames ~ . switch='y') +
     geom_linerange(data=plt.df , aes(x=level, ymin=start, ymax=end+250000, color=ID), size=1) +
     scale_color_manual(values =  col, name="") +
     scale_y_continuous(expand = c(0,0)) +
     theme_void() +
     theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank()) +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-    theme(strip.text.y = element_text(angle = 180))
+    theme(strip.text.y.left = element_text(angle = 0))
   return(plt)
 }
 
@@ -440,11 +440,12 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
   
   dfplot.reads <- as.data.frame(binned.data)
   
-  Crickreads.outlier <- stats::quantile(dfplot.reads$Crickreads, 0.99)
-  Watsonreads.outlier <- stats::quantile(dfplot.reads$Watsonreads, 0.99)
+  #Crickreads.outlier <- stats::quantile(dfplot.reads$Crickreads, 0.99)
+  #Watsonreads.outlier <- stats::quantile(dfplot.reads$Watsonreads, 0.99)
+  outlier <- stats::quantile(dfplot.reads$Crickreads, 0.99)
   ## Set outlier bins to the limit
-  dfplot.reads$Crickreads[dfplot.reads$Crickreads >= Crickreads.outlier] <- Crickreads.outlier
-  dfplot.reads$Watsonreads[dfplot.reads$Watsonreads >= Watsonreads.outlier] <- Watsonreads.outlier
+  dfplot.reads$Crickreads[dfplot.reads$Crickreads >= outlier] <- outlier
+  dfplot.reads$Watsonreads[dfplot.reads$Watsonreads >= outlier] <- outlier
   
   my.theme <- theme(legend.position="none",
                     panel.grid.major = element_blank(),
@@ -453,7 +454,8 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
                     panel.background = element_blank(),
                     axis.text.y=element_blank(),
                     axis.ticks.y=element_blank(),
-                    strip.text.y = element_text(angle = 180) ) 
+                    strip.text.y.left = element_text(angle = 0))
+                    #strip.text.y = element_text(angle = 180) ) 
   
   dfplot.reads$midpoint <- dfplot.reads$start + ( (dfplot.reads$end - dfplot.reads$start) %/% 2 )
   
