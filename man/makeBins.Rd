@@ -4,10 +4,13 @@
 \alias{makeBins}
 \title{Split genome into bins}
 \usage{
-makeBins(bsgenome, chromosomes, binsize = 1e+05, stepsize = binsize/2)
+makeBins(bsgenome = NULL, fai = NULL, chromosomes, binsize = 1e+05,
+  stepsize = binsize/2)
 }
 \arguments{
-\item{bsgenome}{A reference genome to get lengths of standard chromosomes (1-22 adn X).}
+\item{bsgenome}{A reference genome to get lengths of genomic sequences (eg. GRCh38).}
+
+\item{fai}{A FASTA index to get lengths of genomic sequences.}
 
 \item{chromosomes}{A user defined set of chromosomes for binning (eg. 'chr1')}
 

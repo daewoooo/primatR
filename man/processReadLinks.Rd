@@ -14,7 +14,7 @@ processReadLinks(gr.links, min.reads = 10, chromosomes = NULL,
 
 \item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
 
-\item{bsgenome}{A reference genome to get lengths of standard chromosomes (1-22 adn X).}
+\item{bsgenome}{A reference genome to get lengths of genomic sequences (eg. GRCh38).}
 }
 \description{
 This function takes condidate links and filter all spurious links. Also this function exports table of links 

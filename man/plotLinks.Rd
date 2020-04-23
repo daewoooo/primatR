@@ -12,7 +12,7 @@ plotLinks(links = NULL, chromosomes = NULL, index = NULL,
 
 \item{chromosomes}{If only a subset of the chromosomes should be binned, specify them here.}
 
-\item{bsgenome}{A reference genome to get lengths of standard chromosomes (1-22 adn X).}
+\item{bsgenome}{A reference genome to get lengths of genomic sequences (eg. GRCh38).}
 }
 \description{
 This function takes condidate filtered links exported from function 'processReadLinks'

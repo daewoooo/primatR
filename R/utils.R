@@ -108,16 +108,30 @@ coveragePerRegion <- function(grl, ID="", coverage=TRUE) {
 #' 
 #' This function splid genome into a equaly-sized user defined genomic intervals.
 #'
-#' @param bsgenome A reference genome to get lengths of standard chromosomes (1-22 adn X).
+#' @param bsgenome A reference genome to get lengths of genomic sequences (eg. GRCh38).
+#' @param fai A FASTA index to get lengths of genomic sequences.
 #' @param chromosomes A user defined set of chromosomes for binning (eg. 'chr1')
 #' @param binsize A size of the genomic bin to split genome into.
 #' @param stepsize A size of the genomic interval to move each bin. For non-overlapping bins use the same size as binsize.
 #' @return A \code{\link{GRanges-class}} object with resized original set of ranges. 
 #' @author David Porubsky
 #' @export
-makeBins <- function(bsgenome, chromosomes, binsize=100000, stepsize=binsize/2) {
+makeBins <- function(bsgenome=NULL, fai=NULL, chromosomes, binsize=100000, stepsize=binsize/2) {
+  
+  if (!is.null(bsgenome)) {
+    chr.lengths <- seqlengths(bsgenome)[chromosomes]
+  } else if (!is.null(fai)) {
+    ## Get contigs/scaffolds names and sizes from fasta index
+    fai.tab <- utils::read.table(fai)
+    fai.tab <- fai.tab[order(fai.tab$V2, decreasing = TRUE),]
+    chr.lengths <- fai.tab$V2
+    names(chr.lengths) <- fai.tab$V1
+    chr.lengths <- chr.lengths[names(chr.lengths) %in% chromosomes]
+  } else {
+    warning("Please submit chromosome lengths in a form of BSgenome object or fasta index (.fai)!!!")
+  } 
+  
   bins <- GRangesList()
-  chr.lengths <- seqlengths(bsgenome)[chromosomes]
   seqlevels(bins) <- chromosomes
   for (i in seq_along(chr.lengths)) {
     chr.len <- chr.lengths[i]
