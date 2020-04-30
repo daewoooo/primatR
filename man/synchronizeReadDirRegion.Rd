@@ -4,8 +4,13 @@
 \alias{synchronizeReadDirRegion}
 \title{Synchronize Strand-seq read directionality}
 \usage{
-synchronizeReadDirRegion(bamFiles = "", region = NULL,
-  pairedEndReads = TRUE, min.mapq = 10, filterAltAlign = TRUE)
+synchronizeReadDirRegion(
+  bamFiles = "",
+  region = NULL,
+  pairedEndReads = TRUE,
+  min.mapq = 10,
+  filterAltAlign = TRUE
+)
 }
 \arguments{
 \item{bamFiles}{A list of files that contains \code{\link{BreakPoint}} objects.}

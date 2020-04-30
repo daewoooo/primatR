@@ -4,8 +4,7 @@
 \alias{plotOverlapWithRanges}
 \title{Plot number of overlaps between query and subject ranges.}
 \usage{
-plotOverlapWithRanges(query.gr = NULL, subject.gr = NULL,
-  facetID = NULL)
+plotOverlapWithRanges(query.gr = NULL, subject.gr = NULL, facetID = NULL)
 }
 \arguments{
 \item{query.gr}{A \code{\link{GRanges-class}} object.}

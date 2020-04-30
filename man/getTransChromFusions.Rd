@@ -4,8 +4,12 @@
 \alias{getTransChromFusions}
 \title{Detect trans-chromosomal mappings of Iso-seq reads}
 \usage{
-getTransChromFusions(bamfile = NULL, min.mapq = 10,
-  standardChroms = TRUE, min.links = 5)
+getTransChromFusions(
+  bamfile = NULL,
+  min.mapq = 10,
+  standardChroms = TRUE,
+  min.links = 5
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

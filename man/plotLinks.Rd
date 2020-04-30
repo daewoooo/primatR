@@ -4,8 +4,7 @@
 \alias{plotLinks}
 \title{Plot significant connections between read pairs}
 \usage{
-plotLinks(links = NULL, chromosomes = NULL, index = NULL,
-  bsgenome = NULL)
+plotLinks(links = NULL, chromosomes = NULL, index = NULL, bsgenome = NULL)
 }
 \arguments{
 \item{links}{A \code{\link{GRanges-class}} object with stored links between read pairs.}

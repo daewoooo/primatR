@@ -4,8 +4,14 @@
 \alias{bam2GRanges}
 \title{Import BAM file into GRanges}
 \usage{
-bam2GRanges(bamfile, bamindex = bamfile, region = NULL,
-  pairedEndReads = FALSE, min.mapq = 10, filterAltAlign = TRUE)
+bam2GRanges(
+  bamfile,
+  bamindex = bamfile,
+  region = NULL,
+  pairedEndReads = FALSE,
+  min.mapq = 10,
+  filterAltAlign = TRUE
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

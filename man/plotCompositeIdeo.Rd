@@ -4,8 +4,12 @@
 \alias{plotCompositeIdeo}
 \title{Plot genome-wide distribution of plus and minus reads.}
 \usage{
-plotCompositeIdeo(gr, bin.len = 2e+05, colors = c("#EFEDF5",
-  "#68228B"))
+plotCompositeIdeo(
+  gr,
+  bin.len = 2e+05,
+  colors = c("#EFEDF5", "#68228B"),
+  title = NULL
+)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object.}
@@ -13,6 +17,8 @@ plotCompositeIdeo(gr, bin.len = 2e+05, colors = c("#EFEDF5",
 \item{bin.len}{A size of bins to count directional reads in.}
 
 \item{colors}{A colors for plus and minus reads.}
+
+\item{title}{User defined title of the exported plot.}
 }
 \value{
 A \code{ggplot} object.

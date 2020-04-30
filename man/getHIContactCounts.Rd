@@ -4,8 +4,14 @@
 \alias{getHIContactCounts}
 \title{Construct HIC contact matrix.}
 \usage{
-getHIContactCounts(bamfile, region = NULL, min.mapq = 10,
-  nbins = NULL, resolution = NULL, bsgenome = NULL)
+getHIContactCounts(
+  bamfile,
+  region = NULL,
+  min.mapq = 10,
+  nbins = NULL,
+  resolution = NULL,
+  bsgenome = NULL
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

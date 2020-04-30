@@ -4,8 +4,7 @@
 \alias{getReciprocalOverlaps}
 \title{Function to calculate percentage of reciprocal overlap between two sets of ranges.}
 \usage{
-getReciprocalOverlaps(query, subject, thresh = 50, report = "both",
-  index = "")
+getReciprocalOverlaps(query, subject, thresh = 50, report = "both", index = "")
 }
 \arguments{
 \item{query}{A \code{\link{GRanges-class}} object.}

@@ -4,9 +4,15 @@
 \alias{plotHICregional}
 \title{Construct and plot HIC contact matrix.}
 \usage{
-plotHICregional(bamfile, region = NULL, min.mapq = 10,
-  resolution = 50000, highlight.pos = NULL, bsgenome = NULL,
-  title = NULL)
+plotHICregional(
+  bamfile,
+  region = NULL,
+  min.mapq = 10,
+  resolution = 50000,
+  highlight.pos = NULL,
+  bsgenome = NULL,
+  title = NULL
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

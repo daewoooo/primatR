@@ -4,8 +4,12 @@
 \alias{plotColumnCountsPerChr}
 \title{Plot categorized metacolumns of ranged data per chromosome.}
 \usage{
-plotColumnCountsPerChr(gr, colName = "gen", facetID = NULL,
-  normChrSize = FALSE)
+plotColumnCountsPerChr(
+  gr,
+  colName = "gen",
+  facetID = NULL,
+  normChrSize = FALSE
+)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}

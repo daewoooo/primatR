@@ -4,9 +4,16 @@
 \alias{plotReadPairCoverage}
 \title{Plot read-pair coverage profile per breakpoint}
 \usage{
-plotReadPairCoverage(bamfile, mapq = 10, filt.flag = 0,
-  min.read.len = 5000, plot.ambig = FALSE, plot.pairs = FALSE,
-  blacklist = NULL, view.range = 1e+05)
+plotReadPairCoverage(
+  bamfile,
+  mapq = 10,
+  filt.flag = 0,
+  min.read.len = 5000,
+  plot.ambig = FALSE,
+  plot.pairs = FALSE,
+  blacklist = NULL,
+  view.range = 1e+05
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

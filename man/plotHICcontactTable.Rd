@@ -4,9 +4,14 @@
 \alias{plotHICcontactTable}
 \title{Plot horizontal HIC contact matrix.}
 \usage{
-plotHICcontactTable(HICcontacts = NULL, yHeightRatio = 1/3,
-  sd.track = NULL, user.track = NULL, gene.track = NULL,
-  title = NULL)
+plotHICcontactTable(
+  HICcontacts = NULL,
+  yHeightRatio = 1/3,
+  sd.track = NULL,
+  user.track = NULL,
+  gene.track = NULL,
+  title = NULL
+)
 }
 \arguments{
 \item{yHeightRatio}{A size ratio between x and y axis. Default: 1/3, what means that the top third of y-axis values will be removed.}

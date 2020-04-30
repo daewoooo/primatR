@@ -4,9 +4,15 @@
 \alias{bam2stat}
 \title{Get basic BAM file statistics}
 \usage{
-bam2stat(bamfile, bamindex = paste0(bamfile, ".bai"),
-  chromosomes = NULL, chunkSize = NULL, min.mapq = 10,
-  filt.flag = 3328, filt.alt = FALSE)
+bam2stat(
+  bamfile,
+  bamindex = paste0(bamfile, ".bai"),
+  chromosomes = NULL,
+  chunkSize = NULL,
+  min.mapq = 10,
+  filt.flag = 3328,
+  filt.alt = FALSE
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

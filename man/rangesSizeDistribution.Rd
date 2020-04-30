@@ -4,8 +4,13 @@
 \alias{rangesSizeDistribution}
 \title{Plot sorted size distribution of ranged data.}
 \usage{
-rangesSizeDistribution(gr, plotUniqueBases = FALSE, violin = FALSE,
-  colors = NULL, title = NULL)
+rangesSizeDistribution(
+  gr,
+  plotUniqueBases = FALSE,
+  violin = FALSE,
+  colors = NULL,
+  title = NULL
+)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.}

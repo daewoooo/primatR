@@ -4,9 +4,14 @@
 \alias{permDistanceToFeature}
 \title{Function to test significance of ...}
 \usage{
-permDistanceToFeature(query.gr = NULL, feature.gr = NULL,
-  nperm = 100, randomize = "query", mask.gr = NULL,
-  bsgenome = NULL)
+permDistanceToFeature(
+  query.gr = NULL,
+  feature.gr = NULL,
+  nperm = 100,
+  randomize = "query",
+  mask.gr = NULL,
+  bsgenome = NULL
+)
 }
 \arguments{
 \item{query.gr}{A \code{\link{GRanges-class}} object.}

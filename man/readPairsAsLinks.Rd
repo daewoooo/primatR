@@ -4,9 +4,15 @@
 \alias{readPairsAsLinks}
 \title{Get significant connections between read pairs}
 \usage{
-readPairsAsLinks(inputfolder = ".", min.mapq = 60, filt.flag = 3328,
-  min.reads = 10, chromosomes = NULL, bsgenome = NULL,
-  blacklist = NULL)
+readPairsAsLinks(
+  inputfolder = ".",
+  min.mapq = 60,
+  filt.flag = 3328,
+  min.reads = 10,
+  chromosomes = NULL,
+  bsgenome = NULL,
+  blacklist = NULL
+)
 }
 \arguments{
 \item{inputfolder}{A directory that contains set of BAM files to be processed.}

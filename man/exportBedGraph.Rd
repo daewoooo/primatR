@@ -4,8 +4,14 @@
 \alias{exportBedGraph}
 \title{Export aligned reads into a bedgraph}
 \usage{
-exportBedGraph(bamfile, outputdirectory = ".", mapq = 10,
-  filt.flag = 0, min.read.len = 5000, blacklist = NULL)
+exportBedGraph(
+  bamfile,
+  outputdirectory = ".",
+  mapq = 10,
+  filt.flag = 0,
+  min.read.len = 5000,
+  blacklist = NULL
+)
 }
 \arguments{
 \item{bamfile}{Bamfile with aligned reads.}

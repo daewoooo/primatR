@@ -4,8 +4,7 @@
 \alias{processReadLinks}
 \title{Filter and plot significant connections between read pairs}
 \usage{
-processReadLinks(gr.links, min.reads = 10, chromosomes = NULL,
-  bsgenome = NULL)
+processReadLinks(gr.links, min.reads = 10, chromosomes = NULL, bsgenome = NULL)
 }
 \arguments{
 \item{gr.links}{A \code{\link{GRanges-class}} object with stored links between read pairs.}

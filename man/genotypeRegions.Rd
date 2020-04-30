@@ -4,8 +4,14 @@
 \alias{genotypeRegions}
 \title{Calculate genotype in a set of genomic ranges}
 \usage{
-genotypeRegions(regions = NULL, directional.reads = NULL,
-  blacklist = NULL, min.reads = 5, alpha = 0.05, index = NULL)
+genotypeRegions(
+  regions = NULL,
+  directional.reads = NULL,
+  blacklist = NULL,
+  min.reads = 5,
+  alpha = 0.05,
+  index = NULL
+)
 }
 \arguments{
 \item{regions}{A \code{\link{GRanges-class}} object that contains genomic regions to be genotyped.}

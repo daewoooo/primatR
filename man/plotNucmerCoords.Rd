@@ -4,9 +4,14 @@
 \alias{plotNucmerCoords}
 \title{Plot 'dotplot' of two sequences.}
 \usage{
-plotNucmerCoords(nucmer.coords = NULL, genome.coord = TRUE,
-  highlight.pos = NULL, title = NULL, sd.track = NULL,
-  shape = "segm")
+plotNucmerCoords(
+  nucmer.coords = NULL,
+  genome.coord = TRUE,
+  highlight.pos = NULL,
+  title = NULL,
+  sd.track = NULL,
+  shape = "segm"
+)
 }
 \arguments{
 \item{nucmer.coords}{A coordinates from nucmer output. [RUN: nucmer --coords ...]}

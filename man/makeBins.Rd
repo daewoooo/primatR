@@ -4,8 +4,13 @@
 \alias{makeBins}
 \title{Split genome into bins}
 \usage{
-makeBins(bsgenome = NULL, fai = NULL, chromosomes, binsize = 1e+05,
-  stepsize = binsize/2)
+makeBins(
+  bsgenome = NULL,
+  fai = NULL,
+  chromosomes,
+  binsize = 1e+05,
+  stepsize = binsize/2
+)
 }
 \arguments{
 \item{bsgenome}{A reference genome to get lengths of genomic sequences (eg. GRCh38).}
