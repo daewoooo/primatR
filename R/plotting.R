@@ -309,7 +309,7 @@ genomewideRangesIdeo <- function(gr, userTrack=NULL, userTrackGeom='rect', color
   }
   plt <- plt + 
     coord_flip() + 
-    facet_grid(seqnames ~ . switch='y') +
+    facet_grid(seqnames ~ ., switch='y') +
     geom_linerange(data=plt.df , aes(x=level, ymin=start, ymax=end+250000, color=ID), size=1) +
     scale_color_manual(values =  col, name="") +
     scale_y_continuous(expand = c(0,0)) +
@@ -411,13 +411,14 @@ plotOverlapWithRanges <- function(query.gr=NULL, subject.gr=NULL, facetID=NULL) 
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param bin.len A size of bins to count directional reads in.
 #' @param colors A colors for plus and minus reads.
+#' @param title User defined title of the exported plot.
 #' @return A \code{ggplot} object.
 #' @importFrom gtools mixedsort
 #' @importFrom scales comma
 #' @author David Porubsky
 #' @export
 
-plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#68228B')) {
+plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#68228B'), title=NULL) {
   ## Sort reads by position and by chromosome
   gr <- sort(gr, ignore.strand=TRUE)
   seqlevels(gr) <- gtools::mixedsort(seqlevels(gr))
@@ -469,6 +470,11 @@ plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#6822
     xlab("Genomic position") +
     ylab("Read counts") +
     scale_x_continuous(expand = c(0,0), labels = scales::comma) + my.theme
+  
+  if (!is.null(title) & is.character(title)) {
+    ggplt <- ggplt + ggtitle(title)
+  }
+  
   return(ggplt)
 }
 
