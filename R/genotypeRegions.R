@@ -26,8 +26,10 @@ genotypeRegions <- function(regions=NULL, directional.reads=NULL, blacklist=NULL
     frags <- IRanges::subsetByOverlaps(frags, blacklist, invert = TRUE)
   }
   ## Split fragments by the region they overlap with
-  hits <- IRanges::findOverlaps(frags, regions, select = 'first')
-  frags.grl <- GenomicRanges::split(frags, hits)
+  #hits <- IRanges::findOverlaps(frags, regions, select = 'first')
+  #frags.grl <- GenomicRanges::split(frags, hits)
+  hits <- IRanges::findOverlaps(frags, regions)
+  frags.grl <- GenomicRanges::split(frags[queryHits(hits)], subjectHits(hits))
   ## Get genotype for each region
   genoT.l <- lapply(frags.grl, function(x) getGenotype(gr = x, min.reads = min.reads, alpha = alpha))
   genoT.df <- do.call(rbind, genoT.l)
