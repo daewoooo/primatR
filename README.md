@@ -1,7 +1,6 @@
 <img src="https://github.com/daewoooo/primatR/raw/master/primatR_logo.png" />
 =========================================================================
 
-# primatR
 An R package of useful functions to process and analyze Strand-seq data.
 
 Installation
