@@ -9,7 +9,9 @@ synchronizeReadDirRegion(
   region = NULL,
   pairedEndReads = TRUE,
   min.mapq = 10,
-  filterAltAlign = TRUE
+  filterAltAlign = TRUE,
+  alpha = 0.1,
+  genot.region.ends = TRUE
 )
 }
 \arguments{

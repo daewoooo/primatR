@@ -5,8 +5,9 @@
 \title{Plot genome-wide distribution of plus and minus reads.}
 \usage{
 plotCompositeIdeo(
-  gr,
+  gr = NULL,
   bin.len = 2e+05,
+  chromosomes = NULL,
   colors = c("#EFEDF5", "#68228B"),
   title = NULL
 )
@@ -15,6 +16,8 @@ plotCompositeIdeo(
 \item{gr}{A \code{\link{GRanges-class}} object.}
 
 \item{bin.len}{A size of bins to count directional reads in.}
+
+\item{chromosomes}{A user defined set of chromosomes to be plotted.}
 
 \item{colors}{A colors for plus and minus reads.}
 

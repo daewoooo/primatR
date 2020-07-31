@@ -147,7 +147,7 @@ rangesSizeDistribution <- function(gr, plotUniqueBases=FALSE, violin=FALSE, colo
   
   if (violin) {
     plt <- ggplot(size.dist.df) + geom_violin(aes(x=ID, y=size, fill=ID), trim = FALSE) +
-           geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1) +
+           #geom_dotplot(aes(x=ID, y=size), binaxis='y', stackdir='center', dotsize=0.05, binwidth = 1) +
            scale_fill_manual(values = col, name="", guide='none') +
            geom_text(aes(x = ID, y = med_size, label=med_size), color="white", vjust=-0.5) +
            xlab("") 
@@ -410,6 +410,7 @@ plotOverlapWithRanges <- function(query.gr=NULL, subject.gr=NULL, facetID=NULL) 
 #'
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param bin.len A size of bins to count directional reads in.
+#' @param chromosomes A user defined set of chromosomes to be plotted.
 #' @param colors A colors for plus and minus reads.
 #' @param title User defined title of the exported plot.
 #' @return A \code{ggplot} object.
@@ -418,10 +419,17 @@ plotOverlapWithRanges <- function(query.gr=NULL, subject.gr=NULL, facetID=NULL) 
 #' @author David Porubsky
 #' @export
 
-plotCompositeIdeo <- function(gr, bin.len = 200000, colors = c('#EFEDF5', '#68228B'), title=NULL) {
+plotCompositeIdeo <- function(gr=NULL, bin.len=200000, chromosomes=NULL, colors=c('#EFEDF5', '#68228B'), title=NULL) {
+  ## Keep only user defined chromosomes
+  if (!is.null(chromosomes) & is.character(chromosomes)) {
+    gr <- GenomeInfoDb::keepSeqlevels(gr, value = chromosomes, pruning.mode = 'coarse')
+    seqlevels(gr) <- chromosomes[chromosomes %in% as.character(unique(seqnames(gr)))]
+  }
   ## Sort reads by position and by chromosome
   gr <- sort(gr, ignore.strand=TRUE)
-  seqlevels(gr) <- gtools::mixedsort(seqlevels(gr))
+  if (is.null(chromosomes)) {
+    seqlevels(gr) <- gtools::mixedsort(seqlevels(gr))
+  }
   #seqlengths(gr) <- seqlengths(BSgenome.Hsapiens.UCSC.hg38)[seqlevels(gr)]
   
   chrom.lengths <- seqlengths(gr)
