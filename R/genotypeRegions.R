@@ -56,7 +56,7 @@ genotypeRegions <- function(regions=NULL, directional.reads=NULL, blacklist=NULL
 #' @export
 #' 
 getGenotype <- function(gr, min.reads=5, alpha=0.05) {
-  if (length(gr) >= 5) {
+  if (length(gr) >= min.reads) {
     ## Counts plus and minus reads
     plus.reads <- length(gr[strand(gr) == '+'])
     minus.reads <- length(gr[strand(gr) == '-'])
