@@ -7,13 +7,14 @@
 #' @param gr A \code{\link{GRanges-class}} object containing the coordinates of the genomic events.
 #' @param bw Bandwidth used for kernel density estimation (see \code{\link[stats]{density}}).
 #' @param pval P-value cutoff for hotspots.
+#' @param num.trial A number of randomly subsampled set of genomic events.
 #' @return A \code{\link{GRanges-class}} object containing coordinates of hotspots with p-values.
 #' @importFrom stats density runif ecdf
 #' @importFrom S4Vectors endoapply
 #' @import GenomicRanges
 #' @author Aaron Taudt
 #' @export
-hotspotter <- function(gr, bw, pval=1e-8) {
+hotspotter <- function(gr, bw, pval=1e-8, num.trial=100) {
 
   set.seed(0) # fix seed for random permutations of bootstrapping
   
@@ -26,7 +27,7 @@ hotspotter <- function(gr, bw, pval=1e-8) {
       kde <- stats::density(midpoints,bw=bw,kernel='gaussian')
       # Random distribution of genomic events
       kde.densities <- numeric()
-      for (i1 in seq_len(100)) {
+      for (i1 in seq_len(num.trial)) {
         midpoints.r <- round(stats::runif(length(midpoints),1,seqlengths(gr)[chrom]))
         kde.r <- stats::density(midpoints.r,bw=bw,kernel='gaussian')
         kde.densities <- c(kde.densities, kde.r$y)
@@ -57,6 +58,8 @@ hotspotter <- function(gr, bw, pval=1e-8) {
         pranges <- unlist(endoapply(pvalues.split, function(x) { y <- x[1]; end(y) <- end(x)[length(x)]; y$pvalue <- min(x$pvalue); return(y) }))
         pranges$group <- NULL
         pranges$num.events <- GenomicRanges::countOverlaps(pranges, grc)
+        ## Make sure only non-zero counts are reported
+        pranges <- pranges[pranges$num.events > 0]
         pranges.list[[chrom]] <- pranges
       }
     }

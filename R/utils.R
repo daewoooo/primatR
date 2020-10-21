@@ -143,7 +143,7 @@ makeBins <- function(bsgenome=NULL, fai=NULL, chromosomes, binsize=100000, steps
     bins[[i]] <- chr.bins
   }
   bins <- unlist(bins, use.names = FALSE)
-  seqlengths(bins) <- chr.lengths
+  seqlengths(bins) <- chr.lengths[chromosomes]
   return(bins)
 }
 
