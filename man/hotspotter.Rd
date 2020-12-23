@@ -4,7 +4,7 @@
 \alias{hotspotter}
 \title{Find hotspots of genomic events}
 \usage{
-hotspotter(gr, bw, pval = 1e-08)
+hotspotter(gr, bw, pval = 1e-08, num.trial = 100)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object containing the coordinates of the genomic events.}
@@ -12,6 +12,8 @@ hotspotter(gr, bw, pval = 1e-08)
 \item{bw}{Bandwidth used for kernel density estimation (see \code{\link[stats]{density}}).}
 
 \item{pval}{P-value cutoff for hotspots.}
+
+\item{num.trial}{A number of randomly subsampled set of genomic events.}
 }
 \value{
 A \code{\link{GRanges-class}} object containing coordinates of hotspots with p-values.
