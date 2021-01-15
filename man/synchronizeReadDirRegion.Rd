@@ -5,17 +5,19 @@
 \title{Synchronize Strand-seq read directionality}
 \usage{
 synchronizeReadDirRegion(
-  bamFiles = "",
+  bamfiles = "",
   region = NULL,
   pairedEndReads = TRUE,
   min.mapq = 10,
   filterAltAlign = TRUE,
   alpha = 0.1,
-  genot.region.ends = TRUE
+  genot.frac.reads = 0.25,
+  genot.region.ends = "right",
+  desired.genot = c("cc", "ww")
 )
 }
 \arguments{
-\item{bamFiles}{A list of files that contains \code{\link{BreakPoint}} objects.}
+\item{bamfiles}{A list of files that contains \code{\link{BreakPoint}} objects.}
 
 \item{region}{A \code{\link{GRanges-class}} object to select reads from.}
 
@@ -24,6 +26,16 @@ synchronizeReadDirRegion(
 \item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
 \item{filterAltAlign}{Set to \code{TRUE} if you want to filter out reads with alternative mapping location.}
+
+\item{alpha}{Estimated level of background in Strand-seq reads.}
+
+\item{genot.frac.reads}{A fraction of the total number of reads to be genotype from both or a single end 
+of a given 'region' based on 'genot.region.ends'.}
+
+\item{genot.region.ends}{Define if 'left' or 'right' of 'both ends of a given region shall be genotyped.}
+
+\item{desired.genot}{Select desired genotypes: 'ww', 'cc', 'wc' to be allowed on selected region ends. If 
+'genot.region.ends' = 'both', both ends have to have the same genotype.}
 }
 \value{
 A \code{\link{GRanges-class}} object that reads synchronized by directionality.
