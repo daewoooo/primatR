@@ -16,7 +16,7 @@
 #' @export
 hotspotter <- function(gr, bw, pval=1e-8, num.trial=100) {
 
-  set.seed(0) # fix seed for random permutations of bootstrapping
+  set.seed(123) # fix seed for random permutations of bootstrapping
   
   ## Iterate over chromosomes and calculate p-values
   pranges.list <- GenomicRanges::GRangesList()
