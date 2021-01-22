@@ -119,10 +119,16 @@ bam2stat <- function(bamfile, bamindex=paste0(bamfile, '.bai'), chromosomes=NULL
     cov.gr <- as(cov.rle, "GRanges")
     
     ## Summary stat ##
-    total.bases <- sum(cov.gr$score)
-    covered.pos <- sum( width(cov.gr[cov.gr$score > 0]) )
+    covered.ranges <- cov.gr[cov.gr$score > 0]
+    total.aligned.bases <- sum(width(covered.ranges) * covered.ranges$score)
+    covered.genomic.pos <- sum(width(covered.ranges))
     total.reads <- length(data)
-    summary.df <- data.frame(filename=filename, total.bases=total.bases,covered.pos=covered.pos, total.reads=total.reads)
+    median.read.len <- median(width(data))
+    summary.df <- data.frame(filename=filename, 
+                             total.aligned.bases=total.aligned.bases,
+                             covered.genomic.pos=covered.genomic.pos, 
+                             total.reads=total.reads,
+                             median.read.len=median.read.len)
   }
   return(summary.df)
 }
