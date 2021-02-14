@@ -252,8 +252,8 @@ eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL, lm=F
 #' Ranges are color by the 'ID' column.
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
-#' @param userTrack ...
-#' @param userTrackGeom ...
+#' @param userTrack A user defined set of ranges defined \code{\link{GRanges-class}} object to be plotted over the genome-wide ideogram.
+#' @param userTrackGeom A \package{ggplot} geom to be used to visualize 'userTrack'.
 #' @param colors A user defined set of colors used for plotting.
 #' @param bsgenome A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.
@@ -599,6 +599,7 @@ plotNucmerCoords <- function(nucmer.coords = NULL, genome.coord = TRUE, highligh
 #' @importFrom tidyr separate
 #' @author David Porubsky
 #' @export 
+#' 
 plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=5000, plot.ambig=FALSE, plot.pairs=FALSE, blacklist=NULL, view.range=100000) {
   
   filename <- basename(bamfile)
@@ -811,33 +812,4 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
   }
   return(plots)
   message("DONE!!!")
-}
-
-
-#' Prepare NJ tree based on data matrix
-#'
-#' @param data.matrix ...
-#' @param boot.iter ...
-#' @return A \code{ggplot} object.
-#' @importFrom ape nj boot.phylo
-#' @author David Porubsky
-#' @export
-#'
-plotDistanceTree <- function(data.matrix, boot.iter=10000) {
-  ## Construct a tree
-  tree <- ape::nj(X = dist(data.matrix))
-  if (boot.iter > 0) {
-    boot <- ape::boot.phylo(tree, data.matrix, function(x) nj(dist(x)), B = boot.iter)
-    boot <- (boot/boot.iter)*100
-    tree$node.label <- boot
-  }
-  offset <- max(tree$edge.length) + 100
-  ## Plot phylogenetic tree
-  plt <- ggplot(tree) + 
-    geom_tree() + 
-    theme_tree2() + 
-    geom_tiplab() + 
-    geom_nodelab(hjust = -0.1) +
-    ggplot2::xlim(0, offset)
-  return(plt)
 }
