@@ -2,21 +2,34 @@
 #'
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param mask.gr A \code{\link{GRanges-class}} object.
+#' @param bsgenome A \code{\link{GBSgenome-class}} object to get sequence lengths of submitted 'gr' object.
+#' @param fai A FASTA index to get sequence lengths of submitted 'gr' object.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
 #' @export
 #' 
-randomizeRanges <- function(gr=NULL, mask.gr=NULL, bsgenome=NULL) {
+randomizeRanges <- function(gr=NULL, mask.gr=NULL, bsgenome=NULL, fai=NULL) {
   ## Add sequence lengths if missing
   if (any(is.na(seqlengths(gr)))) {
-    ## Load BSgenome
-    if (class(bsgenome) != 'BSgenome') {
-      if (is.character(bsgenome)) {
-        suppressPackageStartupMessages(library(bsgenome, character.only=T))
-        bsgenome <- as.object(bsgenome) # replacing string by object
+    if (!is.null(bsgenome)) {
+      ## Load BSgenome
+      if (class(bsgenome) != 'BSgenome') {
+        if (is.character(bsgenome)) {
+          suppressPackageStartupMessages(library(bsgenome, character.only=TRUE))
+          bsgenome <- as.object(bsgenome) # replacing string by object
+        }
       }
-    }
-    seqlengths(gr) <- seqlengths(bsgenome)[names(seqlengths(gr))]
+      seqlengths(gr) <- GenomeInfoDb::seqlengths(bsgenome)[names(seqlengths(gr))]
+    } else if (!is.null(fai)) {
+      ## Get seqeunce lengths from fasta index
+      fai.tab <- utils::read.table(fai)
+      fai.tab <- fai.tab[order(fai.tab$V2, decreasing = TRUE),]
+      chrom.lengths <- fai.tab$V2
+      names(chrom.lengths) <- fai.tab$V1
+      seqlengths(gr) <- chrom.lengths[names(seqlengths(gr))]
+    } else {
+      stop("Submitted 'GRanges' object doesn't contain sequence lengths. Sequence lengths can be obtained from 'bsgenome' object or from fasta index '.fai'!!!")
+    } 
   }  
   
   shifted.grl <- GenomicRanges::GRangesList()

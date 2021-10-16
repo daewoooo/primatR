@@ -22,7 +22,7 @@ genomewideRangesIdeo(
 
 \item{colors}{A user defined set of colors used for plotting.}
 
-\item{bsgenome}{A \code{\link{GBSgenome-class}} object to provide chromosome lengths for plotting.}
+\item{bsgenome}{A \code{\link{BSgenome-class}} object to provide chromosome lengths for plotting.}
 }
 \value{
 A \code{ggplot} object.

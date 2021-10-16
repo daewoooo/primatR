@@ -4,7 +4,7 @@
 \alias{subtractRegions}
 \title{Function to subtract ranges that flank regions of interest}
 \usage{
-subtractRegions(gr = NULL, remove.gr = NULL, mode = "flanks")
+subtractRegions(gr = NULL, remove.gr = NULL, mode = "flanks", remove = FALSE)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object of ranges from which remove.gr are removed.}
@@ -12,6 +12,8 @@ subtractRegions(gr = NULL, remove.gr = NULL, mode = "flanks")
 \item{remove.gr}{A \code{\link{GRanges-class}} object of ranges to subtract from gr.}
 
 \item{mode}{Select 'flanks' to subtract only flanking regions or 'all' to subtract all regions what creates disjoined ranges.}
+
+\item{remove}{Set to \code{TRUE} if ranges completely embedded within 'remove.gr' should be removed.}
 }
 \value{
 A \code{\link{GRanges-class}} object.

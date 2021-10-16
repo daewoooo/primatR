@@ -36,8 +36,10 @@ genotypeRegions <- function(regions=NULL, directional.reads=NULL, blacklist=NULL
   ## Add regions that could have been genotype to output data.frame
   mcols.df[rownames(genoT.df),] <- genoT.df
   ## Append user defined index to column names
-  if (!is.null(index) & nchar(index) > 0) {
-    colnames(mcols.df) <- paste0(c('plus.reads', 'minus.reads', 'genoT'), "_", index)
+  if (!is.null(index)) {
+      if (nchar(index) > 0) {
+        colnames(mcols.df) <- paste0(c('plus.reads', 'minus.reads', 'genoT'), "_", index)
+      }  
   }  
   ## Genotypes to the output GRanges object
   mcols(regions.genot) <- c(mcols(regions.genot), mcols.df)
