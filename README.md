@@ -24,7 +24,7 @@ To install the development version from Github, follow the steps given below. Th
 	 #### Option1
 	 install_github("daewoooo/primatR", force=TRUE)  
 	 #### Option2 
-	 install_git("git://github.com/daewoooo/primatR.git", branch = "master")  
+	 install_git("git://github.com/daewoooo/primatR.git", ref = "master")  
 
 Report Errors
 -------------

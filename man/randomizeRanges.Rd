@@ -4,12 +4,16 @@
 \alias{randomizeRanges}
 \title{Function to randomize user defined ranges along each chromosome}
 \usage{
-randomizeRanges(gr = NULL, mask.gr = NULL, bsgenome = NULL)
+randomizeRanges(gr = NULL, mask.gr = NULL, bsgenome = NULL, fai = NULL)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object.}
 
 \item{mask.gr}{A \code{\link{GRanges-class}} object.}
+
+\item{bsgenome}{A \code{\link{GBSgenome-class}} object to get sequence lengths of submitted 'gr' object.}
+
+\item{fai}{A FASTA index to get sequence lengths of submitted 'gr' object.}
 }
 \value{
 A \code{\link{GRanges-class}} object.

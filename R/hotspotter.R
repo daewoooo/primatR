@@ -18,18 +18,23 @@ hotspotter <- function(gr, bw, pval=1e-8, num.trial=100) {
 
   set.seed(123) # fix seed for random permutations of bootstrapping
   
+  ## Check if submitted set of ranges has sequence lenghs defined
+  if (any(is.na(seqlengths(gr)[seqlevels(gr)]))) {
+    stop("Not all seqlevels() submitted as 'gr' parameter has their seqlengths() defined!!!")
+  }
+  
   ## Iterate over chromosomes and calculate p-values
   pranges.list <- GenomicRanges::GRangesList()
   for (chrom in seqlevels(gr)) {
-    grc <- gr[seqnames(gr)==chrom]
-    if (length(grc)>1) {
-      midpoints <- (start(grc)+end(grc))/2
-      kde <- stats::density(midpoints,bw=bw,kernel='gaussian')
+    grc <- gr[seqnames(gr) == chrom]
+    if (length(grc) > 1) {
+      midpoints <- (start(grc) + end(grc)) / 2
+      kde <- stats::density(midpoints, bw=bw, kernel='gaussian')
       # Random distribution of genomic events
       kde.densities <- numeric()
       for (i1 in seq_len(num.trial)) {
-        midpoints.r <- round(stats::runif(length(midpoints),1,seqlengths(gr)[chrom]))
-        kde.r <- stats::density(midpoints.r,bw=bw,kernel='gaussian')
+        midpoints.r <- round(stats::runif(length(midpoints), 1, seqlengths(gr)[chrom]))
+        kde.r <- stats::density(midpoints.r, bw=bw, kernel='gaussian')
         kde.densities <- c(kde.densities, kde.r$y)
       }
       # Use ecdf to calculate p-values 

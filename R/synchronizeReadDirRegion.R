@@ -2,7 +2,7 @@
 #'
 #' This function aims to synchronize read directionality of a specified genomic region.
 #' 
-#' @param bamfiles A list of files that contains \code{\link{BreakPoint}} objects.
+#' @param bamfiles A list of BAM files to be processed.
 #' @param region A \code{\link{GRanges-class}} object to select reads from.
 #' @param genot.frac.reads A fraction of the total number of reads to be genotype from both or a single end 
 #' of a given 'region' based on 'genot.region.ends'. 
@@ -58,13 +58,17 @@ synchronizeReadDirRegion <- function(bamfiles="", region = NULL, pairedEndReads 
         data <- NULL
       }  
     } else if (genot.region.ends == 'left') {
-      left.end.reads <- data[1:n.reads]
-      left.end.probs <- countProb(minusCounts = length(left.end.reads[strand(left.end.reads) == '-']), 
-                                  plusCounts = length(left.end.reads[strand(left.end.reads) == '+']), 
-                                  alpha = alpha, log = TRUE)
-      if (!which.max(right.end.probs) %in% search.genot) {
+      if (n.reads > 0) {
+        left.end.reads <- data[1:n.reads]
+        left.end.probs <- countProb(minusCounts = length(left.end.reads[strand(left.end.reads) == '-']), 
+                                    plusCounts = length(left.end.reads[strand(left.end.reads) == '+']), 
+                                    alpha = alpha, log = TRUE)
+        if (!which.max(left.end.probs) %in% search.genot) {
+          data <- NULL
+        }
+      } else {
         data <- NULL
-      }
+      }  
     } else if (genot.region.ends == 'both') {
       if (n.reads > 0) {
         right.end.reads <- data[(1 + (length(data) - n.reads)):length(data)]

@@ -17,7 +17,7 @@ synchronizeReadDirRegion(
 )
 }
 \arguments{
-\item{bamfiles}{A list of files that contains \code{\link{BreakPoint}} objects.}
+\item{bamfiles}{A list of BAM files to be processed.}
 
 \item{region}{A \code{\link{GRanges-class}} object to select reads from.}
 
