@@ -43,10 +43,13 @@ range2rangeDistance <- function(gr, userTrack, allow.overlap=FALSE) {
   right.distances[right.na] <- -1
   
   if (allow.overlap) {
-    left.hits <- findOverlaps(gr.starts, userTrack.collapsed)
-    right.hits <- findOverlaps(gr.ends, userTrack.collapsed)
-    left.distances[queryHits(left.hits)] <- 0
-    right.distances[queryHits(right.hits)] <- 0
+    #left.hits <- findOverlaps(gr.starts, userTrack.collapsed)
+    #right.hits <- findOverlaps(gr.ends, userTrack.collapsed)
+    #left.distances[queryHits(left.hits)] <- 0
+    #right.distances[queryHits(right.hits)] <- 0
+    hits <- findOverlaps(gr, userTrack)
+    left.distances[unique(queryHits(hits))] <- 0
+    right.distances[unique(queryHits(hits))] <- 0
   }
   
   gr$leftDist <- left.distances

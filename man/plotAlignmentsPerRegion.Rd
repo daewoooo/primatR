@@ -14,7 +14,7 @@ plotAlignmentsPerRegion(bamfile = NULL, regions = NULL, file = NULL)
 \item{file}{A filename where final plot should be exported.}
 }
 \value{
-A \code{ggplot} object.
+A \code{ggplot-class} object.
 }
 \description{
 Plot BAM alignments around user defined genomic regions.

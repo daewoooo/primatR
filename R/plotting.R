@@ -743,7 +743,7 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
 #' @param bamfile Bamfile with aligned reads.
 #' @param regions A \code{\link{GRanges-class}} object with genomic regions to process.
 #' @param file A filename where final plot should be exported.
-#' @return A \code{ggplot} object.
+#' @return A \code{ggplot-class} object.
 #' @importFrom dplyr group_by summarise "%>%"
 #' @importFrom Rsamtools scanBamHeader ScanBamParam scanBamFlag
 #' @importFrom GenomicAlignments readGAlignments cigarRangesAlongReferenceSpace cigarToRleList
@@ -753,7 +753,7 @@ plotReadPairCoverage <- function(bamfile, mapq=10, filt.flag=0, min.read.len=500
 plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
   ## Load BAM file
   message("Reading BAM file: ", basename(bamfile))
-  data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('cigar', 'mapq', 'flag', 'qname'), flag=scanBamFlag(isDuplicate=FALSE)))
+  data.raw <- GenomicAlignments::readGAlignments(bamfile, param=Rsamtools::ScanBamParam(what=c('cigar', 'mapq', 'flag', 'qname'), flag=Rsamtools::scanBamFlag(isDuplicate=FALSE)))
   frags <- as(data.raw, 'GRanges')
   
   ## Go over user defined genomic location and plot BAM alignments at these regions
@@ -816,4 +816,60 @@ plotAlignmentsPerRegion <- function(bamfile=NULL, regions=NULL, file=NULL) {
   }
   return(plots)
   message("DONE!!!")
+}
+
+
+#' Plot Strand-seq BAM alignments within a user defined set of genomic regions.
+#'
+#' @param bamfile Bamfile with aligned reads.
+#' @param regions A \code{\link{GRanges-class}} object with genomic regions to process.
+#' @inheritParams bam2GRanges
+#' @return A \code{list} of \code{ggplot-class} object.
+#' @author David Porubsky
+#' @export
+#' 
+plotSSEQReadsPerRegion <- function(bamfiles=NULL, regions=NULL, min.mapq=10, pairedEndReads = TRUE) {
+  ## Loop over each region
+  bam.plots <- list()
+  for (i in seq_along(bamfiles)) {
+    ## Load BAM file
+    bamfile <- bamfiles[i]
+    bam.id <- basename(bamfile)
+    message("Reading BAM file: ", basename(bamfile))
+    frags <- primatR::bam2GRanges(bamfile = bamfile, region = regions, pairedEndReads = pairedEndReads, min.mapq = min.mapq)
+    
+    ## Filter by mapping quality
+    if (min.mapq > 0) {
+      frags <- frags[frags$mapq >= min.mapq]
+    }
+    
+    region.plots <- list()
+    for (j in seq_along(regions)) {
+      region <- regions[j]
+      region.id <- as.character(region)
+      message('    Plotting region: ', region.id)
+      region.frags <- IRanges::subsetByOverlaps(frags, region)
+      region.frags.plus <- region.frags[strand(region.frags) == '+']
+      region.frags.minus <- region.frags[strand(region.frags) == '-']
+      region.frags.plus$level <- GenomicRanges::disjointBins(region.frags.plus)
+      region.frags.minus$level <- GenomicRanges::disjointBins(region.frags.minus) * -1
+      
+      region.df <- as.data.frame(region)
+      frags.df <- as.data.frame(c(region.frags.plus, region.frags.minus))
+      
+      plt <- ggplot2::ggplot() + 
+        geom_linerange(data=region.df, aes(x=0, ymin=start, ymax=end), size=2, color='gray') + 
+        geom_point(data=frags.df, aes_string(x='level', y='start', color='strand'), size=2, position = position_jitter(height = 1), alpha=0.5) + 
+        scale_color_manual(values = c("paleturquoise4","sandybrown")) + 
+        scale_y_continuous(name = region.id, labels = comma) +
+        scale_x_continuous("Watson | Crick") +
+        coord_flip() + 
+        theme(strip.text.y = element_text(angle = 360)) +
+        theme_minimal() +
+        ggtitle(bam.id)
+      region.plots[[j]] <- plt
+    }
+    bam.plots[[i]] <- region.plots
+  }
+  return(bam.plots)
 }
