@@ -14,6 +14,7 @@ Depends:
   cowplot,
   scales
 Imports:
+  ape,
   methods,
   utils,
   grDevices,
@@ -22,6 +23,7 @@ Imports:
   GenomeInfoDb (>= 1.12.3),
   IRanges,
   Rsamtools,
+  data.table,
   GenomicAlignments,
   BiocGenerics,
   gtools,
@@ -37,4 +39,4 @@ Encoding: UTF-8
 VignetteBuilder: knitr
 biocViews: Software, Sequencing
 URL: https://github.com/daewoooo/BreakPointR
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3

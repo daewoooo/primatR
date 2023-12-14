@@ -10,6 +10,9 @@
 reportOverlapBases <- function(ranges=NULL, query.ranges=NULL, index=NULL) {
   if (!is.null(query.ranges) & !is.null(ranges)) {
     if (class(ranges) == "GRanges" & class(query.ranges) == "GRanges") {
+      ## Make sure strand is not considered
+      strand(ranges) <- '*'
+      strand(query.ranges) <- '*'
       ## Get disjoint ranges between query and user.defined set of ranges
       disj.gr <- suppressWarnings( GenomicRanges::disjoin(c(ranges[,0], query.ranges[,0])) )
       ## Get disjoint ranges that are overlapping with query.ranges
