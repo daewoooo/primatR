@@ -61,7 +61,7 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
       gr.filt <- gr2filt[mask$V1]
     } else {
       ## Export maximum overlapping group per range
-      gr2filt.tb <- as.data.table(mcols(gr2filt))
+      gr2filt.tb <- data.table::as.data.table(mcols(gr2filt))
       mask <- gr2filt.tb[, .I[which.max(perc.overlap)], by = idx]
       gr.filt <- gr2filt[mask$V1]
     }  
