@@ -10,7 +10,7 @@
 #' 
 getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
   
-  message("Finding overlaping ranges ...", appendLF=F); ptm <- proc.time()
+  message("Finding overlaping ranges ..."); ptm <- proc.time()
   
   ## Helper function
   returnMaxOverlap <- function(gr) {
@@ -29,6 +29,7 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
   single.cov.gr <- cov.gr[cov.gr$score == 1]
   nooverlap.gr <- gr[gr %in% single.cov.gr]
   gr <- gr[!gr %in% single.cov.gr]
+  total.ranges <- length(gr)
   
   ## Repeat this for ranges with group assigned a zero value
   while (any(gr$group == 0)) {
@@ -42,8 +43,8 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
     ## Find overlaps between original ranges and a set of non-overlapping ranges
     hits <- IRanges::findOverlaps(process.gr, gr.disjoin)
     ## Calculate % overlaps between original and a set of non-overlapping ranges
-    query.width <- width(process.gr[queryHits(hits)]) #Set of original(input) ranges
-    subject.width <- width(gr.disjoin[subjectHits(hits)]) #Non-overlapping ranges corresponding to the original ranges
+    query.width <- width(process.gr[queryHits(hits)]) # Set of original(input) ranges
+    subject.width <- width(gr.disjoin[subjectHits(hits)]) # Non-overlapping ranges corresponding to the original ranges
     perc.overlap <- (subject.width / query.width) * 100
     ## Do not consider singleton ranges (% overlap of range to itself)
     perc.overlap[which(subjectHits(hits) %in% singletons)] <- 0
@@ -107,13 +108,15 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
     } 
     ## Assign processed ranges to initial ranges
     gr[match(new.gr$idx, gr$idx)] <- new.gr[new.gr$idx %in% gr$idx]
+    ## Report number of processed ranges
+    message("    Processed ranges ", total.ranges - length(gr[gr$group == 0]), '/', total.ranges)
   }
   ## Add no-overlap ranges
   nooverlap.gr$group <- seq_along(nooverlap.gr) + max(gr$group)
   nooverlap.gr$sub.group <- nooverlap.gr$group
   gr <- sort(c(gr, nooverlap.gr))
   
-  time <- proc.time() - ptm; message(" ",round(time[3],2),"s")
+  time <- proc.time() - ptm; message("Total time ", round(time[3],2), "s")
   return(gr)
 }
 

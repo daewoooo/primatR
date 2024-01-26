@@ -2,9 +2,10 @@
 % Please edit documentation in R/getDisjointOverlaps.R
 \name{getDisjointOverlaps}
 \alias{getDisjointOverlaps}
-\title{Function to group overlapping ranges based on percentage of the overlap.}
+\title{Function to group overlapping ranges such that common range shared across group of ranges
+meets required percentage threshold (percTh).}
 \usage{
-getDisjointOverlaps(gr, percTh = 50)
+getDisjointOverlaps(gr, percTh = 50, weighted = FALSE)
 }
 \arguments{
 \item{gr}{A \code{\link{GRanges-class}} object.}
@@ -12,10 +13,11 @@ getDisjointOverlaps(gr, percTh = 50)
 \item{percTh}{A percentage threshold for a required overlap.}
 }
 \value{
-A \code{\link{GRanges-class}} object with extra meta-columns (idx, perc.overlap & group).
+A \code{\link{GRanges-class}} object with extra meta-columns (idx, perc.overlap, weight, group & sub.group).
 }
 \description{
-Function to group overlapping ranges based on percentage of the overlap.
+Function to group overlapping ranges such that common range shared across group of ranges
+meets required percentage threshold (percTh).
 }
 \author{
 David Porubsky
