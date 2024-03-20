@@ -3,6 +3,7 @@
 #'
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @param percTh A percentage threshold for a required overlap.
+#' @param weighted Set to \code{TRUE} if each overlapping group of ranges should be weighted based on its size and number of ranges in each group.
 #' @import data.table
 #' @return A \code{\link{GRanges-class}} object with extra meta-columns (idx, perc.overlap, weight, group & sub.group).
 #' @author David Porubsky
@@ -18,10 +19,10 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
   }
   
   ## Initialize exported metadata columns
-  gr$idx <- 1:length(gr) #unique id for each inputed range
+  gr$idx <- as.numeric(1:length(gr)) # define unique id for each range
   gr$perc.overlap <- 0
-  gr$weight <- 0 #overlap weight given percentage overlap and # of overlapping ranges
-  gr$group <- 0 #group for overlapping ranges
+  gr$weight <- 0 # overlap weight given percentage overlap and # of overlapping ranges
+  gr$group <- 0 # group for overlapping ranges
   gr$sub.group <- 0 
   ## Set aside ranges with no overlap with other ranges
   cov <- GenomicRanges::coverage(gr)
@@ -218,7 +219,7 @@ getDisjointOverlapsWeighted <- function(gr, percTh = 50) {
 #' @param gr A \code{\link{GRanges-class}} object.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
-
+#' 
 recalcPercOverlap <- function(gr) {
   if (length(gr) > 1) {
     disjoin.gr <- GenomicRanges::disjoin(gr)
@@ -231,6 +232,12 @@ recalcPercOverlap <- function(gr) {
   return(gr$perc.overlap)
 }
 
+#' Function to calculate a common subrange shared among a set of \code{\link{GRanges-class}} ranges.
+#'
+#' @param gr A \code{\link{GRanges-class}} object.
+#' @return A \code{\link{GRanges-class}} object.
+#' @author David Porubsky
+#' 
 getCommonSubrangeSize <- function(gr) {
   if (length(gr) > 1) {
     disjoin.gr <- disjoin(gr)

@@ -253,7 +253,7 @@ eventsPerChrSizeScatter <- function(gr, bsgenome, colBy=NULL, facetID=NULL, lm=F
 #'
 #' @param gr A \code{\link{GRanges-class}} object with metadata columns to be summarized and plotted.
 #' @param userTrack A user defined set of ranges defined \code{\link{GRanges-class}} object to be plotted over the genome-wide ideogram.
-#' @param userTrackGeom A \package{ggplot} geom to be used to visualize 'userTrack'.
+#' @param userTrackGeom A ggplot2 geom to be used to visualize 'userTrack'.
 #' @param colors A user defined set of colors used for plotting.
 #' @param bsgenome A \code{\link{BSgenome-class}} object to provide chromosome lengths for plotting.
 #' @return A \code{ggplot} object.

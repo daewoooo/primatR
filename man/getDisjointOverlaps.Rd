@@ -11,6 +11,8 @@ getDisjointOverlaps(gr, percTh = 50, weighted = FALSE)
 \item{gr}{A \code{\link{GRanges-class}} object.}
 
 \item{percTh}{A percentage threshold for a required overlap.}
+
+\item{weighted}{Set to \code{TRUE} if each overlapping group of ranges should be weighted based on its size and number of ranges in each group.}
 }
 \value{
 A \code{\link{GRanges-class}} object with extra meta-columns (idx, perc.overlap, weight, group & sub.group).

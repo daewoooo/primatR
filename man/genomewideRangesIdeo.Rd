@@ -18,7 +18,7 @@ genomewideRangesIdeo(
 
 \item{userTrack}{A user defined set of ranges defined \code{\link{GRanges-class}} object to be plotted over the genome-wide ideogram.}
 
-\item{userTrackGeom}{A \package{ggplot} geom to be used to visualize 'userTrack'.}
+\item{userTrackGeom}{A ggplot2 geom to be used to visualize 'userTrack'.}
 
 \item{colors}{A user defined set of colors used for plotting.}
 
