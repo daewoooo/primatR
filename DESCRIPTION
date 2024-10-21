@@ -39,4 +39,4 @@ Encoding: UTF-8
 VignetteBuilder: knitr
 biocViews: Software, Sequencing
 URL: https://github.com/daewoooo/BreakPointR
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2

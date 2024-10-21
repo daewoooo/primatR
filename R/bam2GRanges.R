@@ -6,6 +6,7 @@
 #' @param bamindex Bam-index file with or without the .bai ending. If this file does not exist it will be created and a warning is issued.
 #' @param region If only a subset of the genomic regions should be loaded.
 #' @param pairedEndReads Set to \code{TRUE} if you have paired-end reads in your file.
+#' @param remove.duplicate.reads A logical indicating whether or not duplicate reads should be kept.
 #' @param min.mapq Minimum mapping quality when importing from BAM files.
 #' @param filterAltAlign Set to \code{TRUE} if you want to filter out reads with alternative mapping location.
 #' @importFrom Rsamtools indexBam scanBamHeader ScanBamParam scanBamFlag testPairedEndBam
@@ -13,7 +14,7 @@
 #' @author David Porubsky
 #' @export
 
-bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=FALSE, min.mapq=10, filterAltAlign=TRUE) {
+bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=FALSE, remove.duplicate.reads=TRUE, min.mapq=10, filterAltAlign=TRUE) {
 
   ## Check if bamindex exists
   bamindex.raw <- sub('\\.bai$', '', bamindex)
@@ -62,10 +63,10 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
     data <- as(data.raw, 'GRanges')
   }
   
-  ## Filter duplicates for pairedEndReads
-  if (pairedEndReads) {
+  ## Filter out duplicates
+  if (remove.duplicate.reads) {
     bit.flag <- bitwAnd(1024, data$flag)
-    mask <- bit.flag == 0 	
+    mask <- bit.flag == 0
     data <- data[mask]
   }  
 
@@ -78,7 +79,7 @@ bam2GRanges <- function(bamfile, bamindex=bamfile, region=NULL, pairedEndReads=F
     data <- data[mcols(data)$mapq >= min.mapq]
   }
   
-  ## filter XA tag
+  ## Filter XA tag
   if (filterAltAlign) {
     data <- data[is.na(mcols(data)$XA)]
   }    

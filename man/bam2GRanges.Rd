@@ -9,6 +9,7 @@ bam2GRanges(
   bamindex = bamfile,
   region = NULL,
   pairedEndReads = FALSE,
+  remove.duplicate.reads = TRUE,
   min.mapq = 10,
   filterAltAlign = TRUE
 )
@@ -21,6 +22,8 @@ bam2GRanges(
 \item{region}{If only a subset of the genomic regions should be loaded.}
 
 \item{pairedEndReads}{Set to \code{TRUE} if you have paired-end reads in your file.}
+
+\item{remove.duplicate.reads}{A logical indicating whether or not duplicate reads should be kept.}
 
 \item{min.mapq}{Minimum mapping quality when importing from BAM files.}
 
