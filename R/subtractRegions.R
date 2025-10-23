@@ -2,7 +2,7 @@
 #'
 #' @param gr A \code{\link{GRanges-class}} object of ranges from which remove.gr are removed.
 #' @param remove.gr A \code{\link{GRanges-class}} object of ranges to subtract from gr.
-#' @param mode Select 'flanks' to subtract only flanking regions or 'all' to subtract all regions what creates disjoined ranges.
+#' @param mode Select 'flanks' to subtract only flanking regions or 'longest' to subtract all regions and report only the longest continuous region.
 #' @param remove Set to \code{TRUE} if ranges completely embedded within 'remove.gr' should be removed.
 #' @return A \code{\link{GRanges-class}} object.
 #' @author David Porubsky
@@ -33,16 +33,20 @@ subtractRegions <- function(gr = NULL, remove.gr = NULL, mode = 'flanks', remove
     if (mode == 'flanks') {
       ## Collapse ranges longer or equal 500 bp
       #unique.gr.collapse <- unique.gr.collapse[width(unique.gr.collapse) >= 500]
-      unique.merged.gr <- collapseBins(unique.gr.collapse, id.field = 1)
-      return(sort(c(unique.merged.gr, gr2keep)))
+      unique.merged.gr <- primatR::collapseBins(unique.gr.collapse, id.field = 1)
+      t.return <- c(unique.merged.gr, gr2keep)
+      return(t.return[order(t.return$ID)])
     ## Report the single longest range non-overlapping with SDs 
     } else if (mode == 'longest') {
       unique.gr.collapse.grl <- split(unique.gr.collapse, unique.gr.collapse$ID)
       unique.gr.collapse.grl <- endoapply(unique.gr.collapse.grl, function(x) reduce(x)[which.max(width(reduce(x)))])
       unique.gr.collapse.gr <- unlist(unique.gr.collapse.grl, use.names = FALSE)
-      return(sort(c(unique.gr.collapse.gr, gr2keep)))
+      unique.gr.collapse.gr$ID <- as.integer(names(unique.gr.collapse.grl))
+      t.return <- c(unique.gr.collapse.gr, gr2keep)
+      return(t.return[order(t.return$ID)])
     } else {
-      return(sort(c(unique.gr.collapse, gr2keep)))
+      t.return <- c(unique.gr.collapse.gr, gr2keep)
+      return(t.return[order(t.return$ID)])
     }
   } else {
     return(gr)

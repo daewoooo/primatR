@@ -11,7 +11,7 @@ subtractRegions(gr = NULL, remove.gr = NULL, mode = "flanks", remove = FALSE)
 
 \item{remove.gr}{A \code{\link{GRanges-class}} object of ranges to subtract from gr.}
 
-\item{mode}{Select 'flanks' to subtract only flanking regions or 'all' to subtract all regions what creates disjoined ranges.}
+\item{mode}{Select 'flanks' to subtract only flanking regions or 'longest' to subtract all regions and report only the longest continuous region.}
 
 \item{remove}{Set to \code{TRUE} if ranges completely embedded within 'remove.gr' should be removed.}
 }
