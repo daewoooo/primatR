@@ -12,12 +12,10 @@
 getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
   
   message("Finding overlaping ranges ..."); ptm <- proc.time()
-  
   ## Helper function
   returnMaxOverlap <- function(gr) {
     return( gr[which.max(gr$perc.overlap)] )
   }
-  
   ## Initialize exported metadata columns
   gr$idx <- as.numeric(1:length(gr)) # define unique id for each range
   gr$perc.overlap <- 0
@@ -31,7 +29,6 @@ getDisjointOverlaps <- function(gr, percTh = 50, weighted = FALSE) {
   nooverlap.gr <- gr[gr %in% single.cov.gr]
   gr <- gr[!gr %in% single.cov.gr]
   total.ranges <- length(gr)
-  
   ## Repeat this for ranges with group assigned a zero value
   while (any(gr$group == 0)) {
     ## Select ranges to assign a non-zero group
